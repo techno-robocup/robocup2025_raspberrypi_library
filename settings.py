@@ -15,9 +15,9 @@ def Linetrace_Camera_Pre_callback(request):
         print("precallback called", str(time.time()))
     with MappedArray(request, "lores") as m:
         current = m.array
+        image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
+        _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255, cv2.THRESH_BINARY)
         if DEBUG_MODE:
-            image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
-            _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255, cv2.THRESH_BINARY)
             cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
 
 Rescue_Camera_PORT = 1
