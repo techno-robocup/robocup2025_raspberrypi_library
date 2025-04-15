@@ -23,13 +23,27 @@ def Linetrace_Camera_Pre_callback(request):
         height, width = frame.shape
         left_half = frame[:, :width//2]
         right_half = frame[:, width//2:]
-
-        # Count black pixels (value 0) in each half
-        left_black_pixels = cv2.countNonZero(255 - left_half)
-        right_black_pixels = cv2.countNonZero(255 - right_half)
-
-        if DEBUG_MODE:
-            print(f"Left black pixels: {left_black_pixels}, Right black pixels: {right_black_pixels}")
+        # Number of parts to split each half into
+        num_parts = 16
+        
+        # Function to analyze a section and return True for white majority or False for black majority
+        def analyze_section(section):
+            white_pixels = cv2.countNonZero(section)
+            black_pixels = section.size - white_pixels
+            return white_pixels > black_pixels
+        
+        # Split left half into 16 vertical parts and analyze each
+        left_sections = []
+        section_width = (width // 2) // num_parts
+        for i in range(num_parts):
+            section = left_half[:, i * section_width:(i + 1) * section_width]
+            left_sections.append(analyze_section(section))
+        
+        # Split right half into 16 vertical parts and analyze each
+        right_sections = []
+        for i in range(num_parts):
+            section = right_half[:, i * section_width:(i + 1) * section_width]
+            right_sections.append(analyze_section(section))
 
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
