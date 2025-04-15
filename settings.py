@@ -19,6 +19,17 @@ def Linetrace_Camera_Pre_callback(request):
         _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255, cv2.THRESH_BINARY)
         if DEBUG_MODE:
             cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
+        # Split the frame into left and right halves
+        height, width = frame.shape
+        left_half = frame[:, :width//2]
+        right_half = frame[:, width//2:]
+
+        # Count black pixels (value 0) in each half
+        left_black_pixels = cv2.countNonZero(255 - left_half)
+        right_black_pixels = cv2.countNonZero(255 - right_half)
+
+        if DEBUG_MODE:
+            print(f"Left black pixels: {left_black_pixels}, Right black pixels: {right_black_pixels}")
 
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
