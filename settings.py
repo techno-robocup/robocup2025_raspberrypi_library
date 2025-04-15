@@ -8,6 +8,8 @@ Black_White_Threshold = 50
 # Number of parts to split each half into
 num_parts = 16
 coefficient_base = 1.1
+leftturn = 0
+rightturn = 0
 
 def Rescue_Camera_Pre_callback(request):
     pass
@@ -48,6 +50,11 @@ def Linetrace_Camera_Pre_callback(request):
         coefficient = []
         for i in range(num_parts):
             coefficient.append(coefficient_base ** i)
+        for i, j in zip(left_sections, coefficient):
+            leftturn += i * j
+        for i, j in zip(right_sections, coefficient):
+            rightturn += i * j
+    return
 
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
