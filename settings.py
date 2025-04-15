@@ -5,6 +5,9 @@ import time
 
 DEBUG_MODE = True
 Black_White_Threshold = 50
+# Number of parts to split each half into
+num_parts = 16
+coefficient_base = 1.1
 
 def Rescue_Camera_Pre_callback(request):
     pass
@@ -23,8 +26,6 @@ def Linetrace_Camera_Pre_callback(request):
         height, width = frame.shape
         left_half = frame[:, :width//2]
         right_half = frame[:, width//2:]
-        # Number of parts to split each half into
-        num_parts = 16
         
         # Function to analyze a section and return True for white majority or False for black majority
         def analyze_section(section):
@@ -44,6 +45,9 @@ def Linetrace_Camera_Pre_callback(request):
         for i in range(num_parts):
             section = right_half[:, i * section_width:(i + 1) * section_width]
             right_sections.append(analyze_section(section))
+        coefficient = []
+        for i in range(num_parts):
+            coefficient.append(coefficient_base ** i)
 
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
