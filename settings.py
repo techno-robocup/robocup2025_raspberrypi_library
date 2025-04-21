@@ -24,25 +24,18 @@ def Linetrace_Camera_Pre_callback(request):
         _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255, cv2.THRESH_BINARY)
         if DEBUG_MODE:
             cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-        # Split the frame into left and right halves
         height, width = frame.shape
         left_half = frame[:, :width//2]
         right_half = frame[:, width//2:]
-        
-        # Function to analyze a section and return True for white majority or False for black majority
         def analyze_section(section):
             white_pixels = cv2.countNonZero(section)
             black_pixels = section.size - white_pixels
             return white_pixels > black_pixels
-        
-        # Split left half into 16 vertical parts and analyze each
         left_sections = []
         section_width = (width // 2) // num_parts
         for i in range(num_parts):
             section = left_half[:, i * section_width:(i + 1) * section_width]
             left_sections.append(analyze_section(section))
-        
-        # Split right half into 16 vertical parts and analyze each
         right_sections = []
         for i in range(num_parts):
             section = right_half[:, i * section_width:(i + 1) * section_width]
