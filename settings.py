@@ -14,50 +14,55 @@ rightturn = 0
 leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
 
+
 def Rescue_Camera_Pre_callback(request):
-    pass
+  pass
 
 
 def Linetrace_Camera_Pre_callback(request):
+  if DEBUG_MODE:
+    print("precallback called", str(time.time()))
+  with MappedArray(request, "lores") as m:
+    current = m.array
+    image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
+    _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255,
+                             cv2.THRESH_BINARY)
     if DEBUG_MODE:
-        print("precallback called", str(time.time()))
-    with MappedArray(request, "lores") as m:
-        current = m.array
-        image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
-        _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255, cv2.THRESH_BINARY)
-        if DEBUG_MODE:
-            cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-        height, width = frame.shape
-        left_half = frame[:, :width//2]
-        right_half = frame[:, width//2:]
-        def analyze_section(section):
-            white_pixels = cv2.countNonZero(section)
-            black_pixels = section.size - white_pixels
-            return white_pixels > black_pixels
-        left_sections = []
-        section_width = (width // 2) // num_parts
-        for i in range(num_parts):
-            section = left_half[:, i * section_width:(i + 1) * section_width]
-            left_sections.append(analyze_section(section))
-        right_sections = []
-        for i in range(num_parts):
-            section = right_half[:, i * section_width:(i + 1) * section_width]
-            right_sections.append(analyze_section(section))
-        coefficient = []
-        for i in range(num_parts):
-            coefficient.append(coefficient_base ** i)
-        local_leftturn = 0
-        local_rightturn = 0
-        for i, j in zip(left_sections, coefficient):
-            local_leftturn += i * j
-        for i, j in zip(right_sections, coefficient):
-            local_rightturn += i * j
-        global leftturn, rightturn
-        with leftturn_lock:
-            leftturn = local_leftturn
-        with rightturn_lock:
-            rightturn = local_rightturn
-    return
+      cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
+    height, width = frame.shape
+    left_half = frame[:, :width // 2]
+    right_half = frame[:, width // 2:]
+
+    def analyze_section(section):
+      white_pixels = cv2.countNonZero(section)
+      black_pixels = section.size - white_pixels
+      return white_pixels > black_pixels
+
+    left_sections = []
+    section_width = (width // 2) // num_parts
+    for i in range(num_parts):
+      section = left_half[:, i * section_width:(i + 1) * section_width]
+      left_sections.append(analyze_section(section))
+    right_sections = []
+    for i in range(num_parts):
+      section = right_half[:, i * section_width:(i + 1) * section_width]
+      right_sections.append(analyze_section(section))
+    coefficient = []
+    for i in range(num_parts):
+      coefficient.append(coefficient_base**i)
+    local_leftturn = 0
+    local_rightturn = 0
+    for i, j in zip(left_sections, coefficient):
+      local_leftturn += i * j
+    for i, j in zip(right_sections, coefficient):
+      local_rightturn += i * j
+    global leftturn, rightturn
+    with leftturn_lock:
+      leftturn = local_leftturn
+    with rightturn_lock:
+      rightturn = local_rightturn
+  return
+
 
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
