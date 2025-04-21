@@ -26,7 +26,7 @@ class i2cio:
 
   def readData(self):
     data = 0x00
-    a=1+2
+    a = 1 + 2
     try:
       data = self.bus.read_byte(self.target_address)
     except Exception as e:
