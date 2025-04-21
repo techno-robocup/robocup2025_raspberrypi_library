@@ -43,10 +43,14 @@ def Linetrace_Camera_Pre_callback(request):
         coefficient = []
         for i in range(num_parts):
             coefficient.append(coefficient_base ** i)
+        local_leftturn = 0
+        local_rightturn = 0
         for i, j in zip(left_sections, coefficient):
-            leftturn += i * j
+            local_leftturn += i * j
         for i, j in zip(right_sections, coefficient):
-            rightturn += i * j
+            local_rightturn += i * j
+        leftturn = local_leftturn
+        rightturn = local_rightturn
     return
 
 Rescue_Camera_PORT = 1
