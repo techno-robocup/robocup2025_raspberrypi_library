@@ -2,6 +2,7 @@ from libcamera import controls
 from picamera2 import MappedArray
 import cv2
 import time
+import threading
 
 DEBUG_MODE = True
 Black_White_Threshold = 50
@@ -10,6 +11,8 @@ num_parts = 16
 coefficient_base = 1.1
 leftturn = 0
 rightturn = 0
+leftturn_lock = threading.Lock()
+rightturn_lock = threading.Lock()
 
 def Rescue_Camera_Pre_callback(request):
     pass
@@ -49,8 +52,11 @@ def Linetrace_Camera_Pre_callback(request):
             local_leftturn += i * j
         for i, j in zip(right_sections, coefficient):
             local_rightturn += i * j
-        leftturn = local_leftturn
-        rightturn = local_rightturn
+        global leftturn, rightturn
+        with leftturn_lock:
+            leftturn = local_leftturn
+        with rightturn_lock:
+            rightturn = local_rightturn
     return
 
 Rescue_Camera_PORT = 1
