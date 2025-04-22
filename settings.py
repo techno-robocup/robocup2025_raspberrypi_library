@@ -27,43 +27,45 @@ def Linetrace_Camera_Pre_callback(request):
     current = m.array
     image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
     _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255,
-                            cv2.THRESH_BINARY)
+                             cv2.THRESH_BINARY)
     if DEBUG_MODE:
-          cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-      
+      cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
+
     height, width = frame.shape
     left_half = frame[:, :width // 2]
     right_half = frame[:, width // 2:]
 
-    horizontal_parts = num_parts #16 * 16 * 2
+    horizontal_parts = num_parts  #16 * 16 * 2
     vertical_parts = 16
 
     block_width = (width // 2) // horizontal_parts
     block_height = height // vertical_parts
 
-    horizontal_coefficient = [coefficient_base ** i for i in range(horizontal_parts)]
-    vertical_coefficient = [coefficient_base ** i for i in range(vertical_parts)]
+    horizontal_coefficient = [
+        coefficient_base**i for i in range(horizontal_parts)
+    ]
+    vertical_coefficient = [coefficient_base**i for i in range(vertical_parts)]
 
     local_leftturn = 0
     local_rightturn = 0
 
     for y in range(vertical_parts):
       for x in range(horizontal_parts):
-          section = left_half[y * block_height:(y + 1) * block_height,
-                              x * block_width:(x + 1) * block_width]
-          white_pixels = cv2.countNonZero(section)
-          black_pixels = section.size - white_pixels
-          if white_pixels > black_pixels:
-            local_leftturn += horizontal_coefficient[x] * vertical_coefficient[y]
+        section = left_half[y * block_height:(y + 1) * block_height,
+                            x * block_width:(x + 1) * block_width]
+        white_pixels = cv2.countNonZero(section)
+        black_pixels = section.size - white_pixels
+        if white_pixels > black_pixels:
+          local_leftturn += horizontal_coefficient[x] * vertical_coefficient[y]
 
     for y in range(vertical_parts):
       for x in range(horizontal_parts):
         section = right_half[y * block_height:(y + 1) * block_height,
-                              x * block_width:(x + 1) * block_width]
+                             x * block_width:(x + 1) * block_width]
         white_pixels = cv2.countNonZero(section)
         black_pixels = section.size - white_pixels
         if white_pixels > black_pixels:
-            local_rightturn += horizontal_coefficient[x] * vertical_coefficient[y]
+          local_rightturn += horizontal_coefficient[x] * vertical_coefficient[y]
 
   global leftturn, rightturn
   with leftturn_lock:
