@@ -61,6 +61,8 @@ def Linetrace_Camera_Pre_callback(request):
       leftturn = local_leftturn
     with rightturn_lock:
       rightturn = local_rightturn
+    if DEBUG_MODE:
+      print(leftturn, rightturn)
   return
 
 
