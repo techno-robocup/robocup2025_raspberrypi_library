@@ -49,6 +49,11 @@ def Linetrace_Camera_Pre_callback(request):
     local_leftturn = 0
     local_rightturn = 0
 
+    UpLeft = 0
+    UpRight = 0
+    DownLeft = 0
+    DownRight = 0
+
     for y in range(vertical_parts):
       for x in range(horizontal_parts):
         section = left_half[y * block_height:(y + 1) * block_height,
@@ -57,6 +62,10 @@ def Linetrace_Camera_Pre_callback(request):
         black_pixels = section.size - white_pixels
         if white_pixels > black_pixels:
           local_leftturn += horizontal_coefficient[x] * vertical_coefficient[y]
+          if y < vertical_parts // 2:
+            UpLeft += horizontal_coefficient[x] * vertical_coefficient[y]
+          else:
+            DownLeft += horizontal_coefficient[x] * vertical_coefficient[y]
 
     for y in range(vertical_parts):
       for x in range(horizontal_parts):
@@ -66,6 +75,10 @@ def Linetrace_Camera_Pre_callback(request):
         black_pixels = section.size - white_pixels
         if white_pixels > black_pixels:
           local_rightturn += horizontal_coefficient[x] * vertical_coefficient[y]
+          if y < vertical_parts // 2:
+            UpRight += horizontal_coefficient[x] * vertical_coefficient[y]
+          else:
+            DownRight += horizontal_coefficient[x] * vertical_coefficient[y]
 
   global leftturn, rightturn
   with leftturn_lock:
@@ -75,6 +88,7 @@ def Linetrace_Camera_Pre_callback(request):
 
   if DEBUG_MODE:
     print(leftturn, rightturn)
+    print(Upleft, UpRight, DownLeft, DownRight)
   return
 
 
