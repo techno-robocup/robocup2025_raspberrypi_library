@@ -14,6 +14,8 @@ leftturn = 0
 rightturn = 0
 leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
+Linetrace_Camera_lores_height = 9
+Linetrace_Camera_lores_width = 16
 
 
 def Rescue_Camera_Pre_callback(request):
@@ -122,5 +124,5 @@ Linetrace_Camera_Controls = {
 }
 Linetrace_Camera_size = (4608, 2592)
 Linetrace_Camera_formats = "RGB888"
-Linetrace_Camera_lores_size = (16, 9)
+Linetrace_Camera_lores_size = (Linetrace_Camera_lores_height, Linetrace_Camera_lores_width)
 Linetrace_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
