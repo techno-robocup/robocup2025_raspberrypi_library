@@ -122,6 +122,5 @@ Linetrace_Camera_Controls = {
 }
 Linetrace_Camera_size = (4608, 2592)
 Linetrace_Camera_formats = "RGB888"
-Linetrace_Camera_lores_size = (Linetrace_Camera_size[0] // 4,
-                               Linetrace_Camera_size[1] // 4)
+Linetrace_Camera_lores_size = (16,9)
 Linetrace_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
