@@ -5,7 +5,7 @@ import time
 import threading
 
 DEBUG_MODE = True
-Black_White_Threshold = 50
+Black_White_Threshold = 100
 # Number of parts to split each half into
 num_parts = 16
 vertical_parts = 16
