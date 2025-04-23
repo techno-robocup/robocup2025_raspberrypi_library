@@ -32,65 +32,6 @@ def Linetrace_Camera_Pre_callback(request):
                              cv2.THRESH_BINARY)
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-
-    height, width = frame.shape
-    left_half = frame[:, :width // 2]
-    right_half = frame[:, width // 2:]
-
-    horizontal_parts = num_parts  #16 * 16 * 2
-    vertical_parts = 16
-
-    block_width = (width // 2) // horizontal_parts
-    block_height = height // vertical_parts
-
-    horizontal_coefficient = [
-        coefficient_base**i for i in range(horizontal_parts)
-    ]
-    vertical_coefficient = [coefficient_base**i for i in range(vertical_parts)]
-
-    local_leftturn = 0
-    local_rightturn = 0
-
-    UpLeft = 0
-    UpRight = 0
-    DownLeft = 0
-    DownRight = 0
-
-    for y in range(vertical_parts):
-      for x in range(horizontal_parts):
-        section = left_half[y * block_height:(y + 1) * block_height,
-                            x * block_width:(x + 1) * block_width]
-        white_pixels = cv2.countNonZero(section)
-        black_pixels = section.size - white_pixels
-        if white_pixels > black_pixels:
-          local_leftturn += horizontal_coefficient[x] * vertical_coefficient[y]
-          if y < vertical_parts // 2:
-            UpLeft += horizontal_coefficient[x] * vertical_coefficient[y]
-          else:
-            DownLeft += horizontal_coefficient[x] * vertical_coefficient[y]
-
-    for y in range(vertical_parts):
-      for x in range(horizontal_parts):
-        section = right_half[y * block_height:(y + 1) * block_height,
-                             x * block_width:(x + 1) * block_width]
-        white_pixels = cv2.countNonZero(section)
-        black_pixels = section.size - white_pixels
-        if white_pixels > black_pixels:
-          local_rightturn += horizontal_coefficient[x] * vertical_coefficient[y]
-          if y < vertical_parts // 2:
-            UpRight += horizontal_coefficient[x] * vertical_coefficient[y]
-          else:
-            DownRight += horizontal_coefficient[x] * vertical_coefficient[y]
-
-  global leftturn, rightturn
-  with leftturn_lock:
-    leftturn = local_leftturn
-  with rightturn_lock:
-    rightturn = local_rightturn
-
-  if DEBUG_MODE:
-    print(leftturn, rightturn)
-    print(Upleft, UpRight, DownLeft, DownRight)
   return
 
 
