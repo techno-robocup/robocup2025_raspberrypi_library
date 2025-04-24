@@ -16,7 +16,7 @@ leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
 Linetrace_Camera_lores_height = 9
 Linetrace_Camera_lores_width = 16
-
+cnt = 0
 
 def Rescue_Camera_Pre_callback(request):
   pass
@@ -32,6 +32,25 @@ def Linetrace_Camera_Pre_callback(request):
                              cv2.THRESH_BINARY)
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
+  Upblack = -1
+  Upblacke = -1
+  row = frame[0, :]
+  for i in range(16):
+    if row[i] == 255 and Upblack == -1:
+      Upblack = int(i)
+    if row[i] == 0 and Upblack != -1:
+      Upblacke = int(i) 
+      Upblacke = (Upblacke + Upblack) / 2
+
+  Downblack = -1
+  Downblacke = -1
+  row = frame[16, :]
+  for i in range(16):
+    if row[i] == 255 and Downblack == -1:
+      Downblack = int(i)
+    if row[i] == 0 and Downblack != -1:
+      Downblacke = int(i)
+      Downblacke = (Downblacke + Downblack) / 2
   return
 
 
