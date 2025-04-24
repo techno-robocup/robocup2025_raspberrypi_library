@@ -35,7 +35,7 @@ def Linetrace_Camera_Pre_callback(request):
     current = m.array
     image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
     _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255,
-                            cv2.THRESH_BINARY)
+                             cv2.THRESH_BINARY)
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
   for i in range(0, 9):
@@ -66,27 +66,27 @@ def Linetrace_Camera_Pre_callback(request):
       Downblacke = (Downblacke + Downblack) / 2
   global slope
   slope = (Downblacke - Upblacke) / 9
-  return slope,Downblacke
+  return slope, Downblacke
 
 
 def Carve_Camera_Pre_callback(request):
   if DEBUG_MODE:
     print("Carve precallback called", str(time.time()))
-  
+
   global leftturn
   global rightturn
   carve = 0
-  deviation = Downblacke - 7.5 # 7.5 is the center of the camera
+  deviation = Downblacke - 7.5  # 7.5 is the center of the camera
   if slope < 0:
     carve = int(abs(slope) * CARVE)
     for _ in range(carve):
-      leftturn = 0# abs(slope) * CARVE * deviation <- slow
-      rightturn = 1# abs(slope) * CARVE2 * deviation <- fast
+      leftturn = 0  # abs(slope) * CARVE * deviation <- slow
+      rightturn = 1  # abs(slope) * CARVE2 * deviation <- fast
   elif slope > 0:
     carve = int(abs(slope) * CARVE)
     for _ in range(carve):
-      leftturn = 1# abs(slope) * CARVE2 * deviation <- fast
-      rightturn = 0#slope * CARVE * deviation <- slow TODO:Decide the value of right oe left turn
+      leftturn = 1  # abs(slope) * CARVE2 * deviation <- fast
+      rightturn = 0  #slope * CARVE * deviation <- slow TODO:Decide the value of right oe left turn
 
 
 Rescue_Camera_PORT = 1
