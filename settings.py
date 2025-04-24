@@ -22,6 +22,7 @@ Downblack = -1
 CARVE = 0  # TODO:Decide the value
 CARVE2 = 0  # TODO:Decide the value
 
+
 def Rescue_Camera_Pre_callback(request):
   pass
 
@@ -51,7 +52,7 @@ def Linetrace_Camera_Pre_callback(request):
     if row[i] == 255 and Upblack == -1:
       Upblack = int(i)
     if row[i] == 0 and Upblack != -1:
-      Upblacke = int(i) 
+      Upblacke = int(i)
       Upblacke = (Upblacke + Upblack) / 2
 
   global Downblack
