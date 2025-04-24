@@ -16,7 +16,11 @@ leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
 Linetrace_Camera_lores_height = 9
 Linetrace_Camera_lores_width = 16
-cnt = 0
+slope = 0
+Upblack = -1
+Downblack = -1
+CARVE = 0  # TODO:Decide the value
+CARVE2 = 0  # TODO:Decide the value
 
 def Rescue_Camera_Pre_callback(request):
   pass
@@ -24,15 +28,23 @@ def Rescue_Camera_Pre_callback(request):
 
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
-    print("precallback called", str(time.time()))
+    print("Linetrace precallback called", str(time.time()))
+  lastblackline = 0
   with MappedArray(request, "lores") as m:
     current = m.array
     image_bgr = cv2.cvtColor(current, cv2.COLOR_RGB2GRAY)
     _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255,
-                             cv2.THRESH_BINARY)
+                            cv2.THRESH_BINARY)
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-  Upblack = -1
+  for i in range(0, 9):
+    row = frame[i, :]
+    for j in range(0, 16):
+      if row[j] == 255:
+        lastblackline = i
+        break
+
+  global Upblack
   Upblacke = -1
   row = frame[0, :]
   for i in range(16):
@@ -42,16 +54,38 @@ def Linetrace_Camera_Pre_callback(request):
       Upblacke = int(i) 
       Upblacke = (Upblacke + Upblack) / 2
 
-  Downblack = -1
+  global Downblack
   Downblacke = -1
-  row = frame[16, :]
+  row = frame[lastblackline, :]
   for i in range(16):
     if row[i] == 255 and Downblack == -1:
       Downblack = int(i)
     if row[i] == 0 and Downblack != -1:
       Downblacke = int(i)
       Downblacke = (Downblacke + Downblack) / 2
-  return
+  global slope
+  slope = (Downblacke - Upblacke) / 9
+  return slope,Downblacke
+
+
+def Carve_Camera_Pre_callback(request):
+  if DEBUG_MODE:
+    print("Carve precallback called", str(time.time()))
+  
+  global leftturn
+  global rightturn
+  carve = 0
+  deviation = Downblacke - 7.5 # 7.5 is the center of the camera
+  if slope < 0:
+    carve = int(abs(slope) * CARVE)
+    for _ in range(carve):
+      leftturn = 0# abs(slope) * CARVE * deviation <- slow
+      rightturn = 1# abs(slope) * CARVE2 * deviation <- fast
+  elif slope > 0:
+    carve = int(abs(slope) * CARVE)
+    for _ in range(carve):
+      leftturn = 1# abs(slope) * CARVE2 * deviation <- fast
+      rightturn = 0#slope * CARVE * deviation <- slow TODO:Decide the value of right oe left turn
 
 
 Rescue_Camera_PORT = 1
