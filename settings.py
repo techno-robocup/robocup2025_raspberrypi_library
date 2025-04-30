@@ -10,8 +10,8 @@ Black_White_Threshold = 100
 num_parts = 16
 vertical_parts = 16
 coefficient_base = 1.1
-leftturn = 0
-rightturn = 0
+midh = 0
+midw = 0
 leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
 Linetrace_Camera_lores_height = 9
@@ -34,6 +34,7 @@ def Linetrace_Camera_Pre_callback(request):
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}_blackwhite.jpg", frame)
       cv2.imwrite(f"bin/{str(time.time())}_colour.jpg", current)
+    black_white_array = np.array(frame)
 
 
 def Carve_Camera_Pre_callback(request):
