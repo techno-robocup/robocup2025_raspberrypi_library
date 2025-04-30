@@ -32,13 +32,8 @@ def Linetrace_Camera_Pre_callback(request):
     _, frame = cv2.threshold(image_bgr, Black_White_Threshold, 255,
                              cv2.THRESH_BINARY)
     if DEBUG_MODE:
-      cv2.imwrite(f"bin/{str(time.time())}.jpg", frame)
-  for i in range(0, 9):
-    row = frame[i, :]
-    for j in range(0, 16):
-      if row[j] == 255:
-        lastblackline = i
-        break
+      cv2.imwrite(f"bin/{str(time.time())}_blackwhite.jpg", frame)
+      cv2.imwrite(f"bin/{str(time.time())}_colour.jpg", current)
 
 
 def Carve_Camera_Pre_callback(request):
