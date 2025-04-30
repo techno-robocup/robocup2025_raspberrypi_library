@@ -35,6 +35,7 @@ def Linetrace_Camera_Pre_callback(request):
       cv2.imwrite(f"bin/{str(time.time())}_blackwhite.jpg", frame)
       cv2.imwrite(f"bin/{str(time.time())}_colour.jpg", current)
 
+
 def Carve_Camera_Pre_callback(request):
   if DEBUG_MODE:
     print("Carve precallback called", str(time.time()))
