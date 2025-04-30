@@ -33,7 +33,7 @@ def Linetrace_Camera_Pre_callback(request):
                              cv2.THRESH_BINARY)
     if DEBUG_MODE:
       cv2.imwrite(f"bin/{str(time.time())}_blackwhite.jpg", frame)
-      cv2.imwrite(f"bin/{str(time.time())}_colour.jpg", cv2.cvtColor(current, cv2.COLOR_RGB2BGR))
+      cv2.imwrite(f"bin/{str(time.time())}_colour.jpg", current)
 
 def Carve_Camera_Pre_callback(request):
   if DEBUG_MODE:
