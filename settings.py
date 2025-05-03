@@ -202,26 +202,6 @@ def visualize_tracking(image, contour, cx, cy):
   return vis_image
 
 
-def Carve_Camera_Pre_callback(request):
-  if DEBUG_MODE:
-    print("Carve precallback called", str(time.time()))
-
-  global leftturn
-  global rightturn
-  carve = 0
-  deviation = Downblacke - 7.5  # 7.5 is the center of the camera
-  if slope < 0:
-    carve = int(abs(slope) * CARVE)
-    for _ in range(carve):
-      leftturn = 0  # abs(slope) * CARVE * deviation <- slow
-      rightturn = 1  # abs(slope) * CARVE2 * deviation <- fast
-  elif slope > 0:
-    carve = int(abs(slope) * CARVE)
-    for _ in range(carve):
-      leftturn = 1  # abs(slope) * CARVE2 * deviation <- fast
-      rightturn = 0  #slope * CARVE * deviation <- slow TODO:Decide the value of right oe left turn
-
-
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
     "AfMode": controls.AfModeEnum.Continuous,
