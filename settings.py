@@ -5,7 +5,7 @@ import time
 import threading
 import numpy as np
 
-DEBUG_MODE = True
+DEBUG_MODE=True
 Black_White_Threshold = 100
 # Number of parts to split each half into
 num_parts = 16
