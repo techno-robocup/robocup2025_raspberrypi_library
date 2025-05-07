@@ -1,6 +1,5 @@
 from typing import Callable
 from picamera2 import Picamera2
-import modules.settings
 
 
 class Camera:
