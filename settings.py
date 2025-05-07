@@ -186,7 +186,9 @@ def calculate_slope(contour, cx, cy):
       return (cx - top_x) / (cy - y_min)
     else:
       return 0
-  except:
+  except Exception as e:
+    if DEBUG_MODE:
+      print(f"Error in calculate_slope: {e}")
     return 0
 
 
