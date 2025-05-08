@@ -38,7 +38,7 @@ def detect_green_marks(image, blackline_image):
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
   # Define green color range
-  lower_green = np.array([35, 50, 50])
+  lower_green = np.array([35, 60, 0])
   upper_green = np.array([85, 255, 255])
 
   # Create mask for green color
