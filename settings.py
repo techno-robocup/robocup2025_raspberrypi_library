@@ -103,11 +103,12 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
   """
   Find the best contour to follow from multiple candidates.
   Prioritizes contours at the bottom of the image and close to the last position.
+  Also considers line width and continuity to handle intersections.
   
   Returns the selected contour or None if no suitable contour found.
   """
-  # Initial candidate array structure: [contour_index, bottom_x1, bottom_y1, bottom_x2, bottom_y2, distance]
-  candidates = np.array([[0, 0, 0, 0, 0, camera_x]])
+  # Initial candidate array structure: [contour_index, bottom_x1, bottom_y1, bottom_x2, bottom_y2, distance, width]
+  candidates = np.array([[0, 0, 0, 0, 0, camera_x, 0]])
   bottom_contours = 0
 
   # Process each contour
@@ -118,13 +119,18 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
     # Sort points by y-coordinate (descending)
     box = box[box[:, 1].argsort()[::-1]]
 
+    # Calculate line width at bottom
+    width = abs(box[0][0] - box[1][0])
+
     # Add to candidates
     candidates = np.append(candidates, [[
         i,
         int(box[0][0]),
         int(box[0][1]),
         int(box[1][0]),
-        int(box[1][1]), camera_x
+        int(box[1][1]), 
+        camera_x,
+        width
     ]],
                            axis=0)
 
@@ -141,13 +147,19 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
   # Sort candidates by y-coordinate (prioritize contours at bottom)
   candidates = candidates[candidates[:, 2].argsort()[::-1]]
 
-  # If multiple contours at bottom, choose closest to previous position
+  # If multiple contours at bottom, choose based on width and distance
   if bottom_contours > 1:
     for i in range(bottom_contours):
-      con_num, x_cor1, y_cor1, x_cor2, y_cor2, _ = candidates[i]
+      con_num, x_cor1, y_cor1, x_cor2, y_cor2, _, width = candidates[i]
       # Calculate distance from last position
       center_x = (x_cor1 + x_cor2) / 2
-      candidates[i, 5] = abs(last_center - center_x)
+      distance = abs(last_center - center_x)
+      
+      # Penalize very wide lines (likely intersections) unless they're very close to last position
+      if width > 20 and distance > 30:  # Adjust these thresholds based on your needs
+        distance *= 2
+      
+      candidates[i, 5] = distance
 
     # Sort bottom contours by distance from last position
     bottom_indices = list(range(bottom_contours))
