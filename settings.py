@@ -23,139 +23,130 @@ lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 Downblacke = Linetrace_Camera_lores_width // 2  # Initialize to center
 
-# Green box detection variables
+# Green mark detection variables
 min_green_area = 500  # Minimum area for a green mark to be considered valid
 green_marks = []  # List to store all detected green marks
-green_black_detected = [
-]  # List to store black line detection around each green mark
-
+green_black_detected = []  # List to store black line detection around each green mark
 
 def detect_green_marks(image, blackline_image):
-  """Detect multiple green marks and their relationship with black lines."""
-  global green_marks, green_black_detected
-
-  # Convert to HSV
-  hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-
-  # Define green color range
-  lower_green = np.array([35, 60, 0])
-  upper_green = np.array([85, 255, 255])
-
-  # Create mask for green color
-  green_mask = cv2.inRange(hsv, lower_green, upper_green)
-
-  # Clean up noise
-  kernel = np.ones((3, 3), np.uint8)
-  green_mask = cv2.erode(green_mask, kernel, iterations=2)
-  green_mask = cv2.dilate(green_mask, kernel, iterations=2)
-
-  # Find contours
-  contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
-
-  # Reset global variables
-  green_marks = []
-  green_black_detected = []
-
-  # Process each contour
-  for contour in contours:
-    if cv2.contourArea(contour) > min_green_area:
-      # Get rotated rectangle
-      rect = cv2.minAreaRect(contour)
-      box = cv2.boxPoints(rect)
-      box = np.int0(box)
-
-      # Sort points by y-coordinate
-      box = box[box[:, 1].argsort()]
-
-      # Store green mark info
-      green_marks.append(box)
-
-      # Check for black lines around the green mark
-      black_detections = np.zeros(4,
-                                  dtype=np.int8)  # [bottom, top, left, right]
-
-      # Check bottom
-      roi_b = blackline_image[int(box[2][1]):min(
-          int(box[2][1] + (Linetrace_Camera_lores_height *
-                           0.2)), Linetrace_Camera_lores_height),
-                              min(int(box[2][0]), int(box[3][0])
-                                  ):max(int(box[2][0]), int(box[3][0]))]
-      if roi_b.size > 0 and np.mean(roi_b) > Black_White_Threshold:
-        black_detections[0] = 1
-
-      # Check top
-      roi_t = blackline_image[
-          max(int(box[1][1] -
-                  (Linetrace_Camera_lores_height * 0.2)), 0):int(box[1][1]),
-          min(int(box[0][0]), int(box[1][0])):max(int(box[0][0]), int(box[1][0])
-                                                  )]
-      if roi_t.size > 0 and np.mean(roi_t) > Black_White_Threshold:
-        black_detections[1] = 1
-
-      # Sort points by x-coordinate for left/right checks
-      box_x = box[box[:, 0].argsort()]
-
-      # Check left
-      roi_l = blackline_image[
-          min(int(box_x[0][1]), int(box_x[1][1])):max(int(box_x[0][1]
-                                                          ), int(box_x[1][1])),
-          max(int(box_x[0][0] -
-                  (Linetrace_Camera_lores_width * 0.2)), 0):int(box_x[0][0])]
-      if roi_l.size > 0 and np.mean(roi_l) > Black_White_Threshold:
-        black_detections[2] = 1
-
-      # Check right
-      roi_r = blackline_image[
-          min(int(box_x[2][1]), int(box_x[3][1])):max(int(box_x[2][1]
-                                                          ), int(box_x[3][1])),
-          int(box_x[2][0]
-              ):min(int(box_x[2][0] + (Linetrace_Camera_lores_width *
-                                       0.2)), Linetrace_Camera_lores_width)]
-      if roi_r.size > 0 and np.mean(roi_r) > Black_White_Threshold:
-        black_detections[3] = 1
-
-      green_black_detected.append(black_detections)
-
-      if DEBUG_MODE:
-        # Draw green box
-        cv2.drawContours(image, [box], 0, (0, 255, 0), 2)
-        # Draw center point
-        center = np.mean(box, axis=0).astype(int)
-        cv2.circle(image, tuple(center), 5, (0, 0, 255), -1)
-        # Draw black line detection indicators
-        if black_detections[0]:
-          cv2.line(image, (center[0] - 10, center[1] + 10),
-                   (center[0] + 10, center[1] + 10), (255, 0, 0), 2)
-        if black_detections[1]:
-          cv2.line(image, (center[0] - 10, center[1] - 10),
-                   (center[0] + 10, center[1] - 10), (255, 0, 0), 2)
-        if black_detections[2]:
-          cv2.line(image, (center[0] - 10, center[1] - 10),
-                   (center[0] - 10, center[1] + 10), (255, 0, 0), 2)
-        if black_detections[3]:
-          cv2.line(image, (center[0] + 10, center[1] - 10),
-                   (center[0] + 10, center[1] + 10), (255, 0, 0), 2)
-
+    """Detect multiple X-shaped green marks and their relationship with black lines."""
+    global green_marks, green_black_detected
+    
+    # Convert to HSV
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    
+    # Define green color range
+    lower_green = np.array([35, 60, 0])
+    upper_green = np.array([85, 255, 255])
+    
+    # Create mask for green color
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    
+    # Clean up noise
+    kernel = np.ones((3, 3), np.uint8)
+    green_mask = cv2.erode(green_mask, kernel, iterations=2)
+    green_mask = cv2.dilate(green_mask, kernel, iterations=2)
+    
+    # Find contours
+    contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL,
+                                  cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Reset global variables
+    green_marks = []
+    green_black_detected = []
+    
+    # Process each contour
+    for contour in contours:
+        if cv2.contourArea(contour) > min_green_area:
+            # Get bounding box
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Calculate center point
+            center_x = x + w // 2
+            center_y = y + h // 2
+            
+            # Store mark info
+            green_marks.append((center_x, center_y, w, h))
+            
+            # Check for black lines around the mark
+            black_detections = np.zeros(4, dtype=np.int8)  # [bottom, top, left, right]
+            
+            # Define ROI sizes relative to mark size
+            roi_width = int(w * 0.5)  # Half the width of the mark
+            roi_height = int(h * 0.5)  # Half the height of the mark
+            
+            # Check bottom
+            roi_b = blackline_image[
+                center_y + h//2:min(center_y + h//2 + roi_height, Linetrace_Camera_lores_height),
+                center_x - roi_width//2:center_x + roi_width//2
+            ]
+            if roi_b.size > 0 and np.mean(roi_b) > Black_White_Threshold:
+                black_detections[0] = 1
+            
+            # Check top
+            roi_t = blackline_image[
+                max(center_y - h//2 - roi_height, 0):center_y - h//2,
+                center_x - roi_width//2:center_x + roi_width//2
+            ]
+            if roi_t.size > 0 and np.mean(roi_t) > Black_White_Threshold:
+                black_detections[1] = 1
+            
+            # Check left
+            roi_l = blackline_image[
+                center_y - roi_height//2:center_y + roi_height//2,
+                max(center_x - w//2 - roi_width, 0):center_x - w//2
+            ]
+            if roi_l.size > 0 and np.mean(roi_l) > Black_White_Threshold:
+                black_detections[2] = 1
+            
+            # Check right
+            roi_r = blackline_image[
+                center_y - roi_height//2:center_y + roi_height//2,
+                center_x + w//2:min(center_x + w//2 + roi_width, Linetrace_Camera_lores_width)
+            ]
+            if roi_r.size > 0 and np.mean(roi_r) > Black_White_Threshold:
+                black_detections[3] = 1
+            
+            green_black_detected.append(black_detections)
+            
+            if DEBUG_MODE:
+                # Draw X mark
+                cv2.line(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.line(image, (x + w, y), (x, y + h), (0, 255, 0), 2)
+                # Draw center point
+                cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
+                # Draw black line detection indicators
+                if black_detections[0]:
+                    cv2.line(image, (center_x - 10, center_y + 10),
+                            (center_x + 10, center_y + 10), (255, 0, 0), 2)
+                if black_detections[1]:
+                    cv2.line(image, (center_x - 10, center_y - 10),
+                            (center_x + 10, center_y - 10), (255, 0, 0), 2)
+                if black_detections[2]:
+                    cv2.line(image, (center_x - 10, center_y - 10),
+                            (center_x - 10, center_y + 10), (255, 0, 0), 2)
+                if black_detections[3]:
+                    cv2.line(image, (center_x + 10, center_y - 10),
+                            (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
 def determine_turn_direction():
-  """Determine turn direction based on green marks and black line positions."""
-  if not green_black_detected:
+    """Determine turn direction based on green marks and black line positions."""
+    if not green_black_detected:
+        return "straight"
+    
+    # Check each green mark's black line configuration
+    for detections in green_black_detected:
+        # Left turn: black line on right
+        if detections[3] and not detections[2]:
+            return "left"
+        # Right turn: black line on left
+        if detections[2] and not detections[3]:
+            return "right"
+        # Turn around: black lines on both sides
+        if detections[2] and detections[3]:
+            return "turn_around"
+    
     return "straight"
-
-  # Check each green mark's black line configuration
-  for detections in green_black_detected:
-    # Left turn: black line on right
-    if detections[3] and not detections[2]:
-      return "left"
-    # Right turn: black line on left
-    if detections[2] and not detections[3]:
-      return "right"
-    # Turn around: black lines on both sides
-    if detections[2] and detections[3]:
-      return "turn_around"
-
-  return "straight"
 
 
 def Linetrace_Camera_Pre_callback(request):
