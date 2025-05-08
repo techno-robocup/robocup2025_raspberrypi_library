@@ -6,7 +6,7 @@ import threading
 import numpy as np
 
 DEBUG_MODE = True
-Black_White_Threshold = 100
+Black_White_Threshold = 150
 # Number of parts to split each half into
 num_parts = 16
 vertical_parts = 16
