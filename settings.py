@@ -60,9 +60,9 @@ def Linetrace_Camera_Pre_callback(request):
         cv2.imwrite(f"bin/{str(time.time())}_binary.jpg", binary_image)
 
       # Clean up noise with morphological operations
-      kernel = np.ones((3, 3), np.uint8)
-      binary_image = cv2.erode(binary_image, kernel, iterations=2)
-      binary_image = cv2.dilate(binary_image, kernel, iterations=3)
+      # kernel = np.ones((3, 3), np.uint8)
+      # binary_image = cv2.erode(binary_image, kernel, iterations=2)
+      # binary_image = cv2.dilate(binary_image, kernel, iterations=3)
 
       # Find contours of the black line
       contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
