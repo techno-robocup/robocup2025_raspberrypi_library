@@ -15,8 +15,8 @@ midh = 0
 midw = 0
 leftturn_lock = threading.Lock()
 rightturn_lock = threading.Lock()
-Linetrace_Camera_lores_height = 45
-Linetrace_Camera_lores_width = 80
+Linetrace_Camera_lores_height = 90
+Linetrace_Camera_lores_width = 160
 
 # Line tracing variables
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
