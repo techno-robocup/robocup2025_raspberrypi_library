@@ -23,6 +23,53 @@ lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 Downblacke = Linetrace_Camera_lores_width // 2  # Initialize to center
 
+# Green box detection variables
+min_box_size = 1000  # Minimum area for a green box to be considered valid
+green_box_detected = False
+green_box_center = (0, 0)
+
+def detect_green_box(image):
+    """Detect green boxes in the image using HSV color space."""
+    # Convert to HSV
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    
+    # Define green color range
+    lower_green = np.array([35, 50, 50])
+    upper_green = np.array([85, 255, 255])
+    
+    # Create mask for green color
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    
+    # Clean up noise
+    kernel = np.ones((3, 3), np.uint8)
+    green_mask = cv2.erode(green_mask, kernel, iterations=2)
+    green_mask = cv2.dilate(green_mask, kernel, iterations=2)
+    
+    # Find contours
+    contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Filter contours by size
+    valid_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_box_size]
+    
+    if valid_contours:
+        # Get the largest contour
+        largest_contour = max(valid_contours, key=cv2.contourArea)
+        
+        # Get bounding box
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        
+        # Calculate center
+        center_x = x + w // 2
+        center_y = y + h // 2
+        
+        if DEBUG_MODE:
+            # Draw rectangle and center point
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
+        
+        return True, (center_x, center_y)
+    
+    return False, (0, 0)
 
 def Rescue_Camera_Pre_callback(request):
   pass
@@ -33,7 +80,7 @@ def Linetrace_Camera_Pre_callback(request):
     print("Linetrace precallback called", str(time.time()))
 
   # Global variables for line following
-  global lastblackline, slope, Downblacke
+  global lastblackline, slope, Downblacke, green_box_detected, green_box_center
 
   try:
     with MappedArray(request, "lores") as m:
@@ -47,6 +94,9 @@ def Linetrace_Camera_Pre_callback(request):
       # Save original image for debugging
       if DEBUG_MODE:
         cv2.imwrite(f"bin/{str(time.time())}_original.jpg", image)
+
+      # Detect green box
+      green_box_detected, green_box_center = detect_green_box(image)
 
       # Convert image to grayscale
       gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
