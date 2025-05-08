@@ -36,7 +36,7 @@ def Linetrace_Camera_Pre_callback(request):
   global lastblackline, slope, Downblacke
 
   try:
-    with MappedArray(request, "lores") as m:
+    with MappedArray(request, "main") as m:
       # Get image from camera
       image = m.array
 
