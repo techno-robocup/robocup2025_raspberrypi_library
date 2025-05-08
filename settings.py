@@ -128,9 +128,7 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
         int(box[0][0]),
         int(box[0][1]),
         int(box[1][0]),
-        int(box[1][1]), 
-        camera_x,
-        width
+        int(box[1][1]), camera_x, width
     ]],
                            axis=0)
 
@@ -154,11 +152,11 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
       # Calculate distance from last position
       center_x = (x_cor1 + x_cor2) / 2
       distance = abs(last_center - center_x)
-      
+
       # Penalize very wide lines (likely intersections) unless they're very close to last position
       if width > 20 and distance > 30:  # Adjust these thresholds based on your needs
         distance *= 2
-      
+
       candidates[i, 5] = distance
 
     # Sort bottom contours by distance from last position
