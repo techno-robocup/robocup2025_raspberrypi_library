@@ -24,7 +24,7 @@ slope = 0
 Downblacke = Linetrace_Camera_lores_width // 2  # Initialize to center
 
 # Green box detection variables
-min_green_area = 3000  # Minimum area for a green mark to be considered valid
+min_green_area = 1500  # Minimum area for a green mark to be considered valid
 green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
