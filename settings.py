@@ -44,6 +44,10 @@ def detect_green_marks(image, blackline_image):
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
 
+  # Save green mask for debugging
+  if DEBUG_MODE:
+    cv2.imwrite(f"bin/{str(time.time())}_green_mask.jpg", green_mask)
+
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
   green_mask = cv2.erode(green_mask, kernel, iterations=2)
