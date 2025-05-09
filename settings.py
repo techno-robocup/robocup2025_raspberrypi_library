@@ -21,7 +21,7 @@ Linetrace_Camera_lores_width = 320
 # Line tracing variables
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
-Downblacke = Linetrace_Camera_lores_width // 2  # Initialize to center
+Downblack = Linetrace_Camera_lores_width // 2  # Initialize to center
 
 # Green mark detection variables
 min_green_area = 500  # Minimum area for a green mark to be considered valid
@@ -162,7 +162,7 @@ def Linetrace_Camera_Pre_callback(request):
     print("Linetrace precallback called", str(time.time()))
 
   # Global variables for line following
-  global lastblackline, slope, Downblacke
+  global lastblackline, slope, Downblack
 
   try:
     with MappedArray(request, "lores") as m:
@@ -216,7 +216,7 @@ def Linetrace_Camera_Pre_callback(request):
 
       # Update global variables for line following
       lastblackline = cx
-      Downblacke = cx
+      Downblack = cx
 
       # Calculate slope for steering
       slope = calculate_slope(best_contour, cx, cy)
