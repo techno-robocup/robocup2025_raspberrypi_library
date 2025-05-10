@@ -3,7 +3,7 @@ from picamera2 import MappedArray
 import cv2
 import time
 import numpy as np
-
+import threading
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
@@ -11,6 +11,10 @@ Linetrace_Camera_lores_height = 180
 Linetrace_Camera_lores_width = 320
 
 # Line tracing variables
+LASTBLACKLINE_LOCK = threading.Lock()
+SLOPE_LOCK = threading.Lock()
+DOWNBLACK_LOCK = threading.Lock()
+
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 Downblack = Linetrace_Camera_lores_width // 2  # Initialize to center
@@ -213,11 +217,14 @@ def Linetrace_Camera_Pre_callback(request):
       cx, cy = calculate_contour_center(best_contour)
 
       # Update global variables for line following
-      lastblackline = cx
-      Downblack = cx
+      with LASTBLACKLINE_LOCK:
+        lastblackline = cx
+      with DOWNBLACK_LOCK:
+        Downblack = cx
 
       # Calculate slope for steering
-      slope = calculate_slope(best_contour, cx, cy)
+      with SLOPE_LOCK:
+        slope = calculate_slope(best_contour, cx, cy)
 
       # Create debug visualization if needed
       if DEBUG_MODE:
