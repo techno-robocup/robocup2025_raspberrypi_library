@@ -4,6 +4,7 @@ import cv2
 import time
 import numpy as np
 import threading
+
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
