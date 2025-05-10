@@ -317,14 +317,13 @@ def calculate_contour_center(contour):
 def calculate_slope(contour, cx, cy):
   """Calculate the slope of the line for steering."""
   try:
-    # Find top point of contour
-    y_min = np.amin(contour[:, :, 1])
-    top_points = contour[np.where(contour[:, 0, 1] == y_min)]
-    top_x = int(np.mean(top_points[:, :, 0]))
+    # Set base point
+    base_x = Linetrace_Camera_lores_width // 2
+    base_y = Linetrace_Camera_lores_height
 
     # Calculate slope between top and center points
-    if cy != y_min and cy - y_min > 1:  # Avoid division by zero or tiny values
-      return (cx - top_x) / (cy - y_min)
+    if cy != base_y and cy - base_y > 1:  # Avoid division by zero or tiny values
+      return (cx - base_x) / (cy - base_y)
     else:
       return 0
   except Exception as e:
