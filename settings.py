@@ -7,14 +7,7 @@ import numpy as np
 
 DEBUG_MODE = True
 Black_White_Threshold = 125
-# Number of parts to split each half into
-num_parts = 16
-vertical_parts = 16
-coefficient_base = 1.1
-midh = 0
-midw = 0
-leftturn_lock = threading.Lock()
-rightturn_lock = threading.Lock()
+
 Linetrace_Camera_lores_height = 180
 Linetrace_Camera_lores_width = 320
 
@@ -38,20 +31,21 @@ def detect_green_marks(image, blackline_image):
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
   # Define green color range
+  # [h, s, v]
   lower_green = np.array([35, 60, 0])
   upper_green = np.array([85, 255, 255])
 
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
 
-  # Save green mask for debugging
-  if DEBUG_MODE:
-    cv2.imwrite(f"bin/{str(time.time())}_green_mask.jpg", green_mask)
-
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
   green_mask = cv2.erode(green_mask, kernel, iterations=2)
   green_mask = cv2.dilate(green_mask, kernel, iterations=2)
+  
+  # Save green mask for debugging
+  if DEBUG_MODE:
+    cv2.imwrite(f"bin/{str(time.time())}_green_mask.jpg", green_mask)
 
   # Find contours
   contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL,
@@ -190,6 +184,11 @@ def Linetrace_Camera_Pre_callback(request):
 
       # Clean up noise with morphological operations
       kernel = np.ones((3, 3), np.uint8)
+      """
+      1 1 1
+      1 1 1
+      1 1 1
+      """
       binary_image = cv2.erode(binary_image, kernel, iterations=2)
       binary_image = cv2.dilate(binary_image, kernel, iterations=3)
 
