@@ -2,7 +2,6 @@ from libcamera import controls
 from picamera2 import MappedArray
 import cv2
 import time
-import threading
 import numpy as np
 
 DEBUG_MODE = True
