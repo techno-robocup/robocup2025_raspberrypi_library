@@ -14,11 +14,9 @@ Linetrace_Camera_lores_width = 320
 # Line tracing variables
 LASTBLACKLINE_LOCK = threading.Lock()
 SLOPE_LOCK = threading.Lock()
-DOWNBLACK_LOCK = threading.Lock()
 
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
-Downblack = Linetrace_Camera_lores_width // 2  # Initialize to center
 
 # Green mark detection variables
 min_green_area = 500  # Minimum area for a green mark to be considered valid
@@ -160,7 +158,7 @@ def Linetrace_Camera_Pre_callback(request):
     print("Linetrace precallback called", str(time.time()))
 
   # Global variables for line following
-  global lastblackline, slope, Downblack
+  global lastblackline, slope
 
   try:
     with MappedArray(request, "lores") as m:
@@ -220,8 +218,6 @@ def Linetrace_Camera_Pre_callback(request):
       # Update global variables for line following
       with LASTBLACKLINE_LOCK:
         lastblackline = cx
-      with DOWNBLACK_LOCK:
-        Downblack = cx
 
       # Calculate slope for steering
       with SLOPE_LOCK:
