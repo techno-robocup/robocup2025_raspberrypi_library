@@ -244,6 +244,7 @@ def Linetrace_Camera_Pre_callback(request):
 
       # Detect green marks and their relationship with black lines
       detect_green_marks(image, binary_image)
+      detect_red_marks(image, binary_image)
 
       # Find contours of the black line
       contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
