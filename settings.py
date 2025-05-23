@@ -137,6 +137,8 @@ def detect_green_marks(image, blackline_image):
           cv2.line(image, (center_x + 10, center_y - 10),
                    (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
+
+
 def detect_red_marks(image, blackline_image):
   global red_marks,red_black_detected
 
@@ -175,7 +177,11 @@ def detect_red_marks(image, blackline_image):
 
       # X mark & black line's border
 
-      
+      if DEBUG_MODE:
+        cv2.line(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.line(image, (x + w, y), (x, y + h), (0, 255, 0), 2)
+        cv2.circle(image, (center_x, center_y), 5, (255, 255, 0), -1)
+
 
 def determine_turn_direction():
   """Determine turn direction based on green marks and black line positions."""
