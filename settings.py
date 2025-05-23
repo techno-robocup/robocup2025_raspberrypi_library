@@ -142,11 +142,11 @@ def detect_red_marks(image, blackline_image):
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-  lower_red1 = np.array([0, 100, 100])
-  upper_red1 = np.array([10, 255, 255])
+  lower_red1 = np.array([0, 40, 0])
+  upper_red1 = np.array([30, 255, 255])
 
-  lower_red2 = np.array([170, 100, 100])
-  upper_red2 = np.array([179, 255, 255])
+  lower_red2 = np.array([190, 40, 0])
+  upper_red2 = np.array([255, 255, 255])
 
   red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
   red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
