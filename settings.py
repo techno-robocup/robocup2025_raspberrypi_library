@@ -10,6 +10,7 @@ Black_White_Threshold = 125
 
 Linetrace_Camera_lores_height = 180
 Linetrace_Camera_lores_width = 320
+linetracecam_threadlock = threading.Lock()
 
 # Line tracing variables
 LASTBLACKLINE_LOCK = threading.Lock()
@@ -160,9 +161,9 @@ def detect_red_marks(image, blackline_image):
   red_mask = cv2.dilate(red_mask, kernel, iterations=2)
 
   if DEBUG_MODE:
-    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask1.jpg", red_mask1)
-    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask2.jpg", red_mask2)
-    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask.jpg", red_mask)
+    cv2.imwrite(f"bin/{str(time.time())}_red_mask1.jpg", red_mask1)
+    cv2.imwrite(f"bin/{str(time.time())}_red_mask2.jpg", red_mask2)
+    cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
@@ -217,73 +218,74 @@ def Linetrace_Camera_Pre_callback(request):
   global lastblackline, slope
 
   try:
-    with MappedArray(request, "lores") as m:
-      # Get image from camera
-      image = m.array
+    with linetracecam_threadlock:
+      with MappedArray(request, "lores") as m:
+        # Get image from camera
+        image = m.array
 
-      # Get camera dimensions
-      camera_x = Linetrace_Camera_lores_width
-      camera_y = Linetrace_Camera_lores_height
+        # Get camera dimensions
+        camera_x = Linetrace_Camera_lores_width
+        camera_y = Linetrace_Camera_lores_height
 
-      # Save original image for debugging
-      if DEBUG_MODE:
-        cv2.imwrite(f"bin/{str(time.time())}_original.jpg", image)
+        # Save original image for debugging
+        if DEBUG_MODE:
+          cv2.imwrite(f"bin/{str(time.time())}_original.jpg", image)
 
-      # Convert image to grayscale
-      gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        # Convert image to grayscale
+        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-      # Create binary image with threshold for black line detection
-      _, binary_image = cv2.threshold(gray_image, Black_White_Threshold, 255,
-                                      cv2.THRESH_BINARY_INV)
+        # Create binary image with threshold for black line detection
+        _, binary_image = cv2.threshold(gray_image, Black_White_Threshold, 255,
+                                        cv2.THRESH_BINARY_INV)
 
-      # Save binary image for debugging
-      if DEBUG_MODE:
-        cv2.imwrite(f"bin/{str(time.time())}_binary.jpg", binary_image)
+        # Save binary image for debugging
+        if DEBUG_MODE:
+          cv2.imwrite(f"bin/{str(time.time())}_binary.jpg", binary_image)
 
-      # Clean up noise with morphological operations
-      kernel = np.ones((3, 3), np.uint8)
-      """
-      1 1 1
-      1 1 1
-      1 1 1
-      """
-      binary_image = cv2.erode(binary_image, kernel, iterations=2)
-      binary_image = cv2.dilate(binary_image, kernel, iterations=3)
+        # Clean up noise with morphological operations
+        kernel = np.ones((3, 3), np.uint8)
+        """
+        1 1 1
+        1 1 1
+        1 1 1
+        """
+        binary_image = cv2.erode(binary_image, kernel, iterations=2)
+        binary_image = cv2.dilate(binary_image, kernel, iterations=3)
 
-      # Detect green marks and their relationship with black lines
-      detect_green_marks(image, binary_image)
-      detect_red_marks(image, binary_image)
+        # Detect green marks and their relationship with black lines
+        detect_red_marks(image, binary_image)
+        detect_green_marks(image, binary_image)
 
-      # Find contours of the black line
-      contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
-                                     cv2.CHAIN_APPROX_NONE)
+        # Find contours of the black line
+        contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
+                                      cv2.CHAIN_APPROX_NONE)
 
-      # If no contours found, keep previous values and return
-      if not contours:
-        return
+        # If no contours found, keep previous values and return
+        if not contours:
+          return
 
-      # Find the best contour to follow
-      best_contour = find_best_contour(contours, camera_x, camera_y,
-                                       lastblackline)
+        # Find the best contour to follow
+        best_contour = find_best_contour(contours, camera_x, camera_y,
+                                        lastblackline)
 
-      if best_contour is None:
-        return
+        if best_contour is None:
+          return
 
-      # Calculate center point of contour
-      cx, cy = calculate_contour_center(best_contour)
+        # Calculate center point of contour
+        cx, cy = calculate_contour_center(best_contour)
 
-      # Update global variables for line following
-      with LASTBLACKLINE_LOCK:
-        lastblackline = cx
+        # Update global variables for line following
+        with LASTBLACKLINE_LOCK:
+          lastblackline = cx
 
-      # Calculate slope for steering
-      with SLOPE_LOCK:
-        slope = calculate_slope(best_contour, cx, cy)
+        # Calculate slope for steering
+        with SLOPE_LOCK:
+          slope = calculate_slope(best_contour, cx, cy)
 
-      # Create debug visualization if needed
-      if DEBUG_MODE:
-        debug_image = visualize_tracking(image, best_contour, cx, cy)
-        cv2.imwrite(f"bin/{str(time.time())}_tracking.jpg", debug_image)
+        # Create debug visualization if needed
+        if DEBUG_MODE:
+          debug_image = visualize_tracking(image, best_contour, cx, cy)
+          cv2.imwrite(f"bin/{str(time.time())}_tracking.jpg", debug_image)
 
   except Exception as e:
     if DEBUG_MODE:
