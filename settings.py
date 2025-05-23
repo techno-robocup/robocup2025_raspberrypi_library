@@ -258,7 +258,7 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Find contours of the black line
         contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
-                                      cv2.CHAIN_APPROX_NONE)
+                                       cv2.CHAIN_APPROX_NONE)
 
         # If no contours found, keep previous values and return
         if not contours:
@@ -266,7 +266,7 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Find the best contour to follow
         best_contour = find_best_contour(contours, camera_x, camera_y,
-                                        lastblackline)
+                                         lastblackline)
 
         if best_contour is None:
           return
