@@ -151,9 +151,11 @@ def detect_red_marks(image, blackline_image):
   red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
   red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
 
+  # Create overlapping mask using bitwise OR
+  red_mask = cv2.bitwise_or(red_mask1, red_mask2)
+
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
-  red_mask = red_mask1 + red_mask2
   red_mask = cv2.erode(red_mask, kernel, iterations=2)
   red_mask = cv2.dilate(red_mask, kernel, iterations=2)
 
