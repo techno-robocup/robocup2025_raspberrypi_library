@@ -182,7 +182,8 @@ def detect_red_marks(image, blackline_image):
 
       if DEBUG_MODE:
         # Draw X mark
-        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Red color for red marks
+        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255),
+                 2)  # Red color for red marks
         cv2.line(image, (x + w, y), (x, y + h), (0, 0, 255), 2)
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
