@@ -160,7 +160,10 @@ def detect_red_marks(image, blackline_image):
   red_mask = cv2.dilate(red_mask, kernel, iterations=2)
 
   if DEBUG_MODE:
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
+    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask1.jpg", red_mask1)
+    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask2.jpg", red_mask2)
+    cv2.imwrite(f"i2ctest/bin/{str(time.time())}_red_mask.jpg", red_mask)
+
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
 
@@ -178,9 +181,11 @@ def detect_red_marks(image, blackline_image):
       # X mark & black line's border
 
       if DEBUG_MODE:
-        cv2.line(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.line(image, (x + w, y), (x, y + h), (0, 255, 0), 2)
-        cv2.circle(image, (center_x, center_y), 5, (255, 255, 0), -1)
+        # Draw X mark
+        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Red color for red marks
+        cv2.line(image, (x + w, y), (x, y + h), (0, 0, 255), 2)
+        # Draw center point
+        cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
 
 
 def determine_turn_direction():
