@@ -24,10 +24,9 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 5000#TODO:Set red size
+min_red_area = 5000  #TODO:Set red size
 red_marks = []
-red_black_detected = [
-]
+red_black_detected = []
 
 
 def detect_green_marks(image, blackline_image):
@@ -39,7 +38,7 @@ def detect_green_marks(image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([35,60,0])
+  lower_green = np.array([35, 60, 0])
   upper_green = np.array([85, 255, 255])
 
   # Create mask for green color
@@ -138,9 +137,8 @@ def detect_green_marks(image, blackline_image):
                    (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
 
-
 def detect_red_marks(image, blackline_image):
-  global red_marks,red_black_detected
+  global red_marks, red_black_detected
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -163,13 +161,13 @@ def detect_red_marks(image, blackline_image):
     cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
-  
+
   red_marks = []
   red_black_detected = []
 
   for contour in contours:
     if cv2.contourArea(contour) > min_red_area:
-      x,y,w,h = cv2.boundingRect(contour)
+      x, y, w, h = cv2.boundingRect(contour)
 
       center_x = x + w // 2
       center_y = y + h // 2
