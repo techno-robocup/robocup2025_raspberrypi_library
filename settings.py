@@ -24,6 +24,11 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
+min_red_area = 5000#TODO:Set red size
+red_marks = []
+red_black_detected = [
+]
+
 
 def detect_green_marks(image, blackline_image):
   """Detect multiple X-shaped green marks and their relationship with black lines."""
@@ -34,7 +39,7 @@ def detect_green_marks(image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([35, 60, 0])
+  lower_green = np.array([35,60,0])
   upper_green = np.array([85, 255, 255])
 
   # Create mask for green color
@@ -132,6 +137,45 @@ def detect_green_marks(image, blackline_image):
           cv2.line(image, (center_x + 10, center_y - 10),
                    (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
+def detect_red_marks(image, blackline_image):
+  global red_marks,red_black_detected
+
+  hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+  lower_red1 = np.array([0, 100, 100])
+  upper_red1 = np.array([10, 255, 255])
+
+  lower_red2 = np.array([170, 100, 100])
+  upper_red2 = np.array([179, 255, 255])
+
+  red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+  red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+
+  # Clean up noise
+  kernel = np.ones((3, 3), np.uint8)
+  red_mask = red_mask1 + red_mask2
+  red_mask = cv2.erode(red_mask, kernel, iterations=2)
+  red_mask = cv2.dilate(red_mask, kernel, iterations=2)
+
+  if DEBUG_MODE:
+    cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
+  contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
+                                 cv2.CHAIN_APPROX_SIMPLE)
+  
+  red_marks = []
+  red_black_detected = []
+
+  for contour in contours:
+    if cv2.contourArea(contour) > min_red_area:
+      x,y,w,h = cv2.boundingRect(contour)
+
+      center_x = x + w // 2
+      center_y = y + h // 2
+      red_marks.append((center_x, center_y, w, h))
+
+      # X mark & black line's border
+
+      
 
 def determine_turn_direction():
   """Determine turn direction based on green marks and black line positions."""
