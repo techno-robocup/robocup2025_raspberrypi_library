@@ -4,7 +4,7 @@ import cv2
 import time
 import numpy as np
 import threading
-
+from numba import jit
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
@@ -30,8 +30,9 @@ red_marks = []
 red_black_detected = []
 
 
-def detect_green_marks(image, blackline_image):
+def detect_green_marks(orig_image, blackline_image):
   """Detect multiple X-shaped green marks and their relationship with black lines."""
+  image = orig_image.copy()
   global green_marks, green_black_detected
 
   # Convert to HSV
@@ -138,7 +139,8 @@ def detect_green_marks(image, blackline_image):
                    (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
 
-def detect_red_marks(image, blackline_image):
+def detect_red_marks(orig_image, blackline_image):
+  image = orig_image.copy()
   global red_marks, red_black_detected
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -189,6 +191,7 @@ def detect_red_marks(image, blackline_image):
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
 
+@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
     print("Linetrace precallback called", str(time.time()))
@@ -216,6 +219,8 @@ def Linetrace_Camera_Pre_callback(request):
         # Create binary image with threshold for black line detection
         _, binary_image = cv2.threshold(gray_image, Black_White_Threshold, 255,
                                         cv2.THRESH_BINARY_INV)
+
+        del gray_image
 
         # Save binary image for debugging
         if DEBUG_MODE:
