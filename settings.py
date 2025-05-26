@@ -30,6 +30,11 @@ red_marks = []
 red_black_detected = []
 
 
+class Linetrace:
+  def __init__(self):
+    pass
+
+
 def detect_green_marks(image, blackline_image):
   """Detect multiple X-shaped green marks and their relationship with black lines."""
   global green_marks, green_black_detected
