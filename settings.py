@@ -149,8 +149,12 @@ def detect_red_marks(orig_image, blackline_image):
   lower_red1 = np.array([0, 40, 0])
   upper_red1 = np.array([30, 255, 255])
 
-  lower_red2 = np.array([190, 40, 0])
-  upper_red2 = np.array([255, 255, 255])
+  #TODO: Fix this range
+  #lower_red2 = np.array([190, 40, 0])
+  #upper_red2 = np.array([255, 255, 255])
+
+  lower_red2 = np.array([160, 40, 0])
+  upper_red2 = np.array([180, 255, 255])
 
   red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
   red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
@@ -193,7 +197,7 @@ def detect_red_marks(orig_image, blackline_image):
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
 
 
-@jit(nopython=True)
+#@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
     print("Linetrace precallback called", str(time.time()))
