@@ -4,7 +4,6 @@ import cv2
 import time
 import numpy as np
 import threading
-from numba import jit
 
 DEBUG_MODE = True
 Black_White_Threshold = 125
