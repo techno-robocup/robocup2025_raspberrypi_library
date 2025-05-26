@@ -189,27 +189,6 @@ def detect_red_marks(image, blackline_image):
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
 
-
-def determine_turn_direction():
-  """Determine turn direction based on green marks and black line positions."""
-  if not green_black_detected:
-    return "straight"
-
-  # Check each green mark's black line configuration
-  for detections in green_black_detected:
-    # Left turn: black line on right
-    if detections[3] and not detections[2]:
-      return "left"
-    # Right turn: black line on left
-    if detections[2] and not detections[3]:
-      return "right"
-    # Turn around: black lines on both sides
-    if detections[2] and detections[3]:
-      return "turn_around"
-
-  return "straight"
-
-
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
     print("Linetrace precallback called", str(time.time()))
