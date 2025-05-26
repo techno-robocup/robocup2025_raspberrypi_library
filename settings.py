@@ -5,6 +5,7 @@ import time
 import numpy as np
 import threading
 from numba import jit
+
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
@@ -190,6 +191,7 @@ def detect_red_marks(orig_image, blackline_image):
         cv2.line(image, (x + w, y), (x, y + h), (0, 0, 255), 2)
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
+
 
 @jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
