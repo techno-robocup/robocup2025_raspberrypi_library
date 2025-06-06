@@ -21,17 +21,17 @@ class UART_CON:
       break
 
   def init_connection(self):
-    self.Serial_Port.write("[RASPI] READY?")
+    self.Serial_Port.write("[RASPI] READY?".encode("utf-8"))
     logger.debug("SEND RASPI READY?")
     current_time = time.time()
     while True:
       if time.time() - current_time > 1:
-        self.Serial_Port.write("[RASPI] READY?")
+        self.Serial_Port.write("[RASPI] READY?".encode("utf-8"))
         logger.debug("ESP32 not giving respond, SEND RASPI READY?")
         current_time = time.time()
-      if self.Serial_Port.in_waiting():
+      if self.Serial_Port.in_waiting > 0:
         str = self.Serial_Port.read_until()
         if str == "[ESP32] READY":
           logger.debug("ESP32 READY!")
-          self.Serial_Port.write("[RASPI] READY CONFIRMED")
+          self.Serial_Port.write("[RASPI] READY CONFIRMED".encode("utf-8"))
           logger.debug("RASPI SENT CONFIRMED")
