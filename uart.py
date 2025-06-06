@@ -2,6 +2,7 @@ import serial
 from serial.tools import list_ports
 import modules.log
 import time
+
 logger = modules.log.get_logger()
 
 
