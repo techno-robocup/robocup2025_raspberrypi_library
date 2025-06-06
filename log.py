@@ -4,10 +4,10 @@ import logging
 class UnixTimeFormatter(logging.Formatter):
 
   def formatTime(self, record, datefmt=None):
-    return str(int(record.created))
+    return f"{record.created:.3f}"
 
 
-def get_logger(name="AppLogger"):
+def get_logger(name="Logger"):
   logger = logging.getLogger(name)
 
   if not logger.hasHandlers():
@@ -20,7 +20,7 @@ def get_logger(name="AppLogger"):
     logger.addHandler(console_handler)
 
     # File handler
-    file_handler = logging.FileHandler("app.log")
+    file_handler = logging.FileHandler("log.log")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
