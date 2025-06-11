@@ -17,6 +17,7 @@ class UART_CON:
         logger.debug(f"Port: {port.device}, Description: {port.description}")
 
       Serial_Port_Id = available_ports[0].device
+      logger.debug(f"Using {available_ports[0].device}")
       self.Serial_Port = serial.Serial(Serial_Port_Id, 9600, timeout=None)
       break
 
