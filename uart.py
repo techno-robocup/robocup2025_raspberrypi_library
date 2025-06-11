@@ -31,9 +31,9 @@ class UART_CON:
         logger.debug("ESP32 not giving respond, SEND RASPI READY?")
         current_time = time.time()
       if self.Serial_Port.in_waiting > 0:
-        str = self.Serial_Port.read_until()
-        logger.debug(f"Received {str} from ESP32")
-        if str == "[ESP32] READY":
+        message_str = self.Serial_Port.read_until()
+        logger.debug(f"Received {message_str} from ESP32")
+        if message_str == "[ESP32] READY":
           logger.debug("ESP32 READY!")
           self.Serial_Port.write("[RASPI] READY CONFIRMED".encode("utf-8"))
           logger.debug("RASPI SENT CONFIRMED")
