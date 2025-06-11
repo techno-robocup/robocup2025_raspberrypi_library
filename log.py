@@ -11,7 +11,7 @@ def get_logger(name="Logger"):
   logger = logging.getLogger(name)
 
   if not logger.hasHandlers():
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     formatter = UnixTimeFormatter('[%(asctime)s] [%(levelname)s] %(message)s')
 
     # Console handler
