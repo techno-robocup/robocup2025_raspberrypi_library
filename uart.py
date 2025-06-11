@@ -32,7 +32,7 @@ class UART_CON:
         current_time = time.time()
       if self.Serial_Port.in_waiting > 0:
         str = self.Serial_Port.read_until()
-        logger.debug(f"Received {str} from ESP32");
+        logger.debug(f"Received {str} from ESP32")
         if str == "[ESP32] READY":
           logger.debug("ESP32 READY!")
           self.Serial_Port.write("[RASPI] READY CONFIRMED".encode("utf-8"))
