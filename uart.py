@@ -8,14 +8,18 @@ logger = modules.log.get_logger()
 
 class Message:
 
-  def __init__(self, id: int, message: str):
-    self.id = id
-    self.message = message
-
-  def __init__(self, message: str):
-    self.id, self.message = message.split(" ")
-    self.id = int(self.id)
-    self.message = self.message.strip()
+  def __init__(self, *args):
+      if len(args) == 2:
+          # Case 1: id and message provided separately
+          self.id = args[0]
+          self.message = args[1]
+      elif len(args) == 1:
+          # Case 2: combined string provided
+          id_str, message = args[0].split(" ", 1)
+          self.id = int(id_str)
+          self.message = message.strip()
+      else:
+          raise ValueError("Message must be initialized with either (id, message) or (combined_string)")
 
   def __str__(self):
     return f"{self.id} {self.message}\n"
