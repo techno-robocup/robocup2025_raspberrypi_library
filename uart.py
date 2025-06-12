@@ -97,7 +97,7 @@ class UART_CON:
 
     try:
       self.Serial_Port.write(str(message).encode("ascii"))
-      logger.debug(f"Sent \"{message}\"")
+      logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
     except serial.SerialException as e:
       logger.error(f"Serial communication error: {e}")
