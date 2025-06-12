@@ -5,12 +5,14 @@ import time
 
 logger = modules.log.get_logger()
 
+
 class Message:
-  def __init__(self, id : int, message : str):
+
+  def __init__(self, id: int, message: str):
     self.id = id
     self.message = message
-  
-  def __init__(self, message : str):
+
+  def __init__(self, message: str):
     self.id, self.message = message.split(" ")
     self.id = int(self.id)
     self.message = self.message.strip()
@@ -23,6 +25,7 @@ class Message:
 
   def getMessage(self):
     return self.message
+
 
 class UART_CON:
 
@@ -93,15 +96,14 @@ class UART_CON:
     except serial.SerialException as e:
       logger.error(f"Serial communication error: {e}")
       return False
-  
+
   def receive_message(self):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
     try:
-      message_str = self.Serial_Port.read_until(b'\n').decode(
-          'ascii').strip()
+      message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
     except serial.SerialException as e:
