@@ -2,6 +2,7 @@ import serial
 from serial.tools import list_ports
 import modules.log
 import time
+import threading
 
 logger = modules.log.get_logger()
 
@@ -31,6 +32,29 @@ class Message:
 
   def getMessage(self):
     return self.message
+
+
+def timeout_function(func, args=(), kwargs={}, timeout=1):
+    result = []
+    error = []
+    
+    def target():
+        try:
+            result.append(func(*args, **kwargs))
+        except Exception as e:
+            error.append(e)
+    
+    thread = threading.Thread(target=target)
+    thread.daemon = True
+    thread.start()
+    thread.join(timeout)
+    
+    if thread.is_alive():
+        # Thread is still running, timeout occurred
+        return None, TimeoutError(f"Function timed out after {timeout} seconds")
+    if error:
+        return None, error[0]
+    return result[0] if result else None, None
 
 
 class UART_CON:
@@ -95,26 +119,38 @@ class UART_CON:
       logger.error("Serial port not open")
       return False
 
-    try:
+    def _send():
       self.Serial_Port.write(str(message).encode("ascii"))
       logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
+
+    result, error = timeout_function(_send, timeout=timeout)
+    if error:
+      if isinstance(error, TimeoutError):
+        logger.error(f"Send message timed out after {timeout} seconds")
+      else:
+        logger.error(f"Serial communication error: {error}")
       return False
+    return result
 
   def receive_message(self):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
-    try:
+    def _receive():
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
+
+    result, error = timeout_function(_receive, timeout=timeout)
+    if error:
+      if isinstance(error, TimeoutError):
+        logger.error(f"Receive message timed out after {timeout} seconds")
+      else:
+        logger.error(f"Serial communication error: {error}")
       return False
+    return result
 
   def close(self):
     if self.Serial_Port and self.Serial_Port.is_open:
