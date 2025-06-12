@@ -124,7 +124,8 @@ class UART_CON:
       logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
 
-    result, error = timeout_function(_send, timeout=0.01)
+    timeout = 0.01
+    result, error = timeout_function(_send, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
         logger.error(f"Send message timed out after {timeout} seconds")
@@ -143,7 +144,8 @@ class UART_CON:
       logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
 
-    result, error = timeout_function(_receive, timeout=0.01)
+    timeout = 0.01
+    result, error = timeout_function(_receive, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
         logger.error(f"Receive message timed out after {timeout} seconds")
