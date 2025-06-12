@@ -52,13 +52,26 @@ class UART_CON:
         if self.Serial_Port.in_waiting > 0:
           message_str = self.Serial_Port.read_until(b'\n').decode(
               'ascii').strip()
-          logger.debug(f"Received {message_str} from ESP32")
+          logger.debug(f"Received \"{message_str}\" from ESP32")
 
           if message_str == "[ESP32] READY":
             logger.debug("ESP32 READY!")
             self.Serial_Port.write("[RASPI] READY CONFIRMED\n".encode("ascii"))
             logger.debug("RASPI SENT CONFIRMED")
             return True
+    except serial.SerialException as e:
+      logger.error(f"Serial communication error: {e}")
+      return False
+
+  def send_message(self, id, message):
+    if not self.Serial_Port or not self.Serial_Port.is_open:
+      logger.error("Serial port not open")
+      return False
+
+    try:
+      self.Serial_Port.write(f"{id} {message}\n".encode("ascii"))
+      logger.debug(f"Sent \"{message}\" to {id}")
+      return True
     except serial.SerialException as e:
       logger.error(f"Serial communication error: {e}")
       return False
