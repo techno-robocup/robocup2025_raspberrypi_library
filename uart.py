@@ -5,6 +5,24 @@ import time
 
 logger = modules.log.get_logger()
 
+class Message:
+  def __init__(self, id : int, message : str):
+    self.id = id
+    self.message = message
+  
+  def __init__(self, message : str):
+    self.id, self.message = message.split(" ")
+    self.id = int(self.id)
+    self.message = self.message.strip()
+
+  def __str__(self):
+    return f"{self.id} {self.message}\n"
+
+  def getId(self):
+    return self.id
+
+  def getMessage(self):
+    return self.message
 
 class UART_CON:
 
@@ -63,15 +81,29 @@ class UART_CON:
       logger.error(f"Serial communication error: {e}")
       return False
 
-  def send_message(self, id, message):
+  def send_message(self, message):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
     try:
-      self.Serial_Port.write(f"{id} {message}\n".encode("ascii"))
-      logger.debug(f"Sent \"{message}\" to {id}")
+      self.Serial_Port.write(str(message).encode("ascii"))
+      logger.debug(f"Sent \"{message}\"")
       return True
+    except serial.SerialException as e:
+      logger.error(f"Serial communication error: {e}")
+      return False
+  
+  def receive_message(self):
+    if not self.Serial_Port or not self.Serial_Port.is_open:
+      logger.error("Serial port not open")
+      return False
+
+    try:
+      message_str = self.Serial_Port.read_until(b'\n').decode(
+          'ascii').strip()
+      logger.debug(f"Received \"{message_str}\" from ESP32")
+      return Message(message_str)
     except serial.SerialException as e:
       logger.error(f"Serial communication error: {e}")
       return False
