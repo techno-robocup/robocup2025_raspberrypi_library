@@ -169,9 +169,10 @@ def detect_red_marks(orig_image, blackline_image):
   red_mask = cv2.dilate(red_mask, kernel, iterations=2)
 
   if DEBUG_MODE:
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask1.jpg", red_mask1)
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask2.jpg", red_mask2)
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
+    time_str = str(time.time())
+    cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
+    cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
+    cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
