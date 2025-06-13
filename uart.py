@@ -11,11 +11,9 @@ class Message:
 
   def __init__(self, *args):
     if len(args) == 2:
-      # Case 1: id and message provided separately
       self.id = args[0]
       self.message = args[1]
     elif len(args) == 1:
-      # Case 2: combined string provided
       id_str, message = args[0].split(" ", 1)
       self.id = int(id_str)
       self.message = message.strip()
