@@ -438,3 +438,25 @@ Linetrace_Camera_formats = "RGB888"
 Linetrace_Camera_lores_size = (Linetrace_Camera_lores_width,
                                Linetrace_Camera_lores_height)
 Linetrace_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
+
+def timeout_function(func, args=(), kwargs={}, timeout=1):
+  result = []
+  error = []
+
+  def target():
+    try:
+      result.append(func(*args, **kwargs))
+    except Exception as e:
+      error.append(e)
+
+  thread = threading.Thread(target=target)
+  thread.daemon = True
+  thread.start()
+  thread.join(timeout)
+
+  if thread.is_alive():
+    # Thread is still running, timeout occurred
+    return None, TimeoutError(f"Function timed out after {timeout} seconds")
+  if error:
+    return None, error[0]
+  return result[0] if result else None, None

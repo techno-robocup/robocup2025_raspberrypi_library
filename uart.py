@@ -1,6 +1,7 @@
 import serial
 from serial.tools import list_ports
 import modules.log
+import modules.settings
 import time
 import threading
 
@@ -30,30 +31,6 @@ class Message:
 
   def getMessage(self):
     return self.message
-
-
-def timeout_function(func, args=(), kwargs={}, timeout=1):
-  result = []
-  error = []
-
-  def target():
-    try:
-      result.append(func(*args, **kwargs))
-    except Exception as e:
-      error.append(e)
-
-  thread = threading.Thread(target=target)
-  thread.daemon = True
-  thread.start()
-  thread.join(timeout)
-
-  if thread.is_alive():
-    # Thread is still running, timeout occurred
-    return None, TimeoutError(f"Function timed out after {timeout} seconds")
-  if error:
-    return None, error[0]
-  return result[0] if result else None, None
-
 
 class UART_CON:
 
@@ -123,7 +100,7 @@ class UART_CON:
       return True
 
     timeout = 0.01
-    result, error = timeout_function(_send, timeout=timeout)
+    result, error = modules.settings.timeout_function(_send, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
         logger.error(f"Send message timed out after {timeout} seconds")
@@ -143,7 +120,7 @@ class UART_CON:
       return Message(message_str)
 
     timeout = 0.01
-    result, error = timeout_function(_receive, timeout=timeout)
+    result, error = modules.settings.timeout_function(_receive, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
         logger.error(f"Receive message timed out after {timeout} seconds")
