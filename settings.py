@@ -4,7 +4,9 @@ import cv2
 import time
 import numpy as np
 import threading
+import modules.log
 
+logger = modules.log.get_logger()
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
@@ -167,9 +169,10 @@ def detect_red_marks(orig_image, blackline_image):
   red_mask = cv2.dilate(red_mask, kernel, iterations=2)
 
   if DEBUG_MODE:
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask1.jpg", red_mask1)
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask2.jpg", red_mask2)
-    cv2.imwrite(f"bin/{str(time.time())}_red_mask.jpg", red_mask)
+    time_str = str(time.time())
+    cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
+    cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
+    cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
@@ -199,7 +202,7 @@ def detect_red_marks(orig_image, blackline_image):
 #@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
-    print("Linetrace precallback called", str(time.time()))
+    logger.debug("Linetrace precallback called")
 
   # Global variables for line following
   global lastblackline, slope
@@ -279,7 +282,7 @@ def Linetrace_Camera_Pre_callback(request):
 
   except Exception as e:
     if DEBUG_MODE:
-      print(f"Error in line tracing: {e}")
+      logger.error(f"Error in line tracing: {e}")
 
 
 def find_best_contour(contours, camera_x, camera_y, last_center):
@@ -380,7 +383,7 @@ def calculate_slope(contour, cx, cy):
       return 0
   except Exception as e:
     if DEBUG_MODE:
-      print(f"Error in calculate_slope: {e}")
+      logger.error(f"Error in calculate_slope: {e}")
     return 0
 
 
@@ -438,3 +441,26 @@ Linetrace_Camera_formats = "RGB888"
 Linetrace_Camera_lores_size = (Linetrace_Camera_lores_width,
                                Linetrace_Camera_lores_height)
 Linetrace_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
+
+
+def timeout_function(func, args=(), kwargs={}, timeout=1):
+  result = []
+  error = []
+
+  def target():
+    try:
+      result.append(func(*args, **kwargs))
+    except Exception as e:
+      error.append(e)
+
+  thread = threading.Thread(target=target)
+  thread.daemon = True
+  thread.start()
+  thread.join(timeout)
+
+  if thread.is_alive():
+    # Thread is still running, timeout occurred
+    return None, TimeoutError(f"Function timed out after {timeout} seconds")
+  if error:
+    return None, error[0]
+  return result[0] if result else None, None

@@ -1,6 +1,7 @@
 import serial
 from serial.tools import list_ports
 import modules.log
+import modules.settings
 import time
 
 logger = modules.log.get_logger()
@@ -10,11 +11,9 @@ class Message:
 
   def __init__(self, *args):
     if len(args) == 2:
-      # Case 1: id and message provided separately
       self.id = args[0]
       self.message = args[1]
     elif len(args) == 1:
-      # Case 2: combined string provided
       id_str, message = args[0].split(" ", 1)
       self.id = int(id_str)
       self.message = message.strip()
@@ -60,61 +59,45 @@ class UART_CON:
       self.Serial_Port = serial.Serial(Serial_Port_Id, 9600, timeout=None)
       break
 
-  def init_connection(self):
-    if not self.Serial_Port or not self.Serial_Port.is_open:
-      logger.error("Serial port not open")
-      return False
-
-    try:
-      self.Serial_Port.write("[RASPI] READY?\n".encode("ascii"))
-      logger.debug("SEND RASPI READY?")
-
-      current_time = time.time()
-      while True:
-        if time.time() - current_time > 1:
-          self.Serial_Port.write("[RASPI] READY?\n".encode("ascii"))
-          logger.debug("ESP32 not giving respond, SEND RASPI READY?")
-          current_time = time.time()
-
-        if self.Serial_Port.in_waiting > 0:
-          message_str = self.Serial_Port.read_until(b'\n').decode(
-              'ascii').strip()
-          logger.debug(f"Received \"{message_str}\" from ESP32")
-
-          if message_str == "[ESP32] READY":
-            logger.debug("ESP32 READY!")
-            self.Serial_Port.write("[RASPI] READY CONFIRMED\n".encode("ascii"))
-            logger.debug("RASPI SENT CONFIRMED")
-            return True
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
-      return False
-
   def send_message(self, message):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
-    try:
+    def _send():
       self.Serial_Port.write(str(message).encode("ascii"))
-      logger.debug(f"Sent \"{message}\"")
+      logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
+
+    timeout = 0.01
+    result, error = modules.settings.timeout_function(_send, timeout=timeout)
+    if error:
+      if isinstance(error, TimeoutError):
+        logger.error(f"Send message timed out after {timeout} seconds")
+      else:
+        logger.error(f"Serial communication error: {error}")
       return False
+    return result
 
   def receive_message(self):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
-    try:
+    def _receive():
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
+
+    timeout = 0.01
+    result, error = modules.settings.timeout_function(_receive, timeout=timeout)
+    if error:
+      if isinstance(error, TimeoutError):
+        logger.error(f"Receive message timed out after {timeout} seconds")
+      else:
+        logger.error(f"Serial communication error: {error}")
       return False
+    return result
 
   def close(self):
     if self.Serial_Port and self.Serial_Port.is_open:
