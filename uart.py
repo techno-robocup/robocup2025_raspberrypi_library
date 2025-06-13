@@ -3,7 +3,6 @@ from serial.tools import list_ports
 import modules.log
 import modules.settings
 import time
-import threading
 
 logger = modules.log.get_logger()
 
