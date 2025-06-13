@@ -4,7 +4,9 @@ import cv2
 import time
 import numpy as np
 import threading
+import modules.log
 
+logger = modules.log.get_logger()
 DEBUG_MODE = True
 Black_White_Threshold = 125
 
@@ -199,7 +201,7 @@ def detect_red_marks(orig_image, blackline_image):
 #@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
-    print("Linetrace precallback called", str(time.time()))
+    logger.debug("Linetrace precallback called")
 
   # Global variables for line following
   global lastblackline, slope
@@ -279,7 +281,7 @@ def Linetrace_Camera_Pre_callback(request):
 
   except Exception as e:
     if DEBUG_MODE:
-      print(f"Error in line tracing: {e}")
+      logger.error(f"Error in line tracing: {e}")
 
 
 def find_best_contour(contours, camera_x, camera_y, last_center):
@@ -380,7 +382,7 @@ def calculate_slope(contour, cx, cy):
       return 0
   except Exception as e:
     if DEBUG_MODE:
-      print(f"Error in calculate_slope: {e}")
+      logger.error(f"Error in calculate_slope: {e}")
     return 0
 
 
