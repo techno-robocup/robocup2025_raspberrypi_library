@@ -441,6 +441,7 @@ Linetrace_Camera_lores_size = (Linetrace_Camera_lores_width,
                                Linetrace_Camera_lores_height)
 Linetrace_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
 
+
 def timeout_function(func, args=(), kwargs={}, timeout=1):
   result = []
   error = []

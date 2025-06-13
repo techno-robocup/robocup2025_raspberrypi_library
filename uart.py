@@ -31,6 +31,7 @@ class Message:
   def getMessage(self):
     return self.message
 
+
 class UART_CON:
 
   def __init__(self):
