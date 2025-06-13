@@ -59,36 +59,6 @@ class UART_CON:
       self.Serial_Port = serial.Serial(Serial_Port_Id, 9600, timeout=None)
       break
 
-  def init_connection(self):
-    if not self.Serial_Port or not self.Serial_Port.is_open:
-      logger.error("Serial port not open")
-      return False
-
-    try:
-      self.Serial_Port.write("[RASPI] READY?\n".encode("ascii"))
-      logger.debug("SEND RASPI READY?")
-
-      current_time = time.time()
-      while True:
-        if time.time() - current_time > 1:
-          self.Serial_Port.write("[RASPI] READY?\n".encode("ascii"))
-          logger.debug("ESP32 not giving respond, SEND RASPI READY?")
-          current_time = time.time()
-
-        if self.Serial_Port.in_waiting > 0:
-          message_str = self.Serial_Port.read_until(b'\n').decode(
-              'ascii').strip()
-          logger.debug(f"Received \"{message_str}\" from ESP32")
-
-          if message_str == "[ESP32] READY":
-            logger.debug("ESP32 READY!")
-            self.Serial_Port.write("[RASPI] READY CONFIRMED\n".encode("ascii"))
-            logger.debug("RASPI SENT CONFIRMED")
-            return True
-    except serial.SerialException as e:
-      logger.error(f"Serial communication error: {e}")
-      return False
-
   def send_message(self, message):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
