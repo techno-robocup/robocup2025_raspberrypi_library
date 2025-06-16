@@ -378,7 +378,7 @@ def calculate_slope(contour, cx, cy):
 
     # Calculate slope between top and center points
     if cy != base_y and cy - base_y > 1:  # Avoid division by zero or tiny values
-      return (cx - base_x) / (cy - base_y)
+      return (cy - base_y) / (cx - base_x)
     else:
       return 0
   except Exception as e:
