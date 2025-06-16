@@ -377,8 +377,8 @@ def calculate_slope(contour, cx, cy):
     base_y = Linetrace_Camera_lores_height
 
     # Calculate slope between top and center points
-    if cy != base_y and cy - base_y > 1:  # Avoid division by zero or tiny values
-      return (cy - base_y) / (cx - base_x)
+    if cx != base_x:  # Avoid division by zero or tiny values
+      return (base_y - cy) / (base_x - cx)
     else:
       return 0
   except Exception as e:
