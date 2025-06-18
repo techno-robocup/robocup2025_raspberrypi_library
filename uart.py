@@ -84,7 +84,7 @@ class UART_CON:
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
-
+    logger.debug("Receive_message function called")
     def _receive():
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       logger.debug(f"Received \"{message_str}\" from ESP32")
