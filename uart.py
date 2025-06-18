@@ -77,7 +77,7 @@ class UART_CON:
       else:
         logger.error(f"Serial communication error: {error}")
       return False
-    logger.debug(f"Sent message: {result}")
+    logger.debug(f"Sent message: {message.getMessage().strip()} successfully")
     return result
 
   def receive_message(self):
