@@ -69,7 +69,7 @@ class UART_CON:
       logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
 
-    timeout = 0.01
+    timeout = 1
     result, error = modules.settings.timeout_function(_send, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
@@ -91,7 +91,7 @@ class UART_CON:
       logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
 
-    timeout = 0.5
+    timeout = 1
     result, error = modules.settings.timeout_function(_receive, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
