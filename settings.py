@@ -409,7 +409,11 @@ def visualize_tracking(image, contour, cx, cy):
 
   return vis_image
 
-
+def Rescue_Camera_Pre_callback(request):
+  with MappedArray(request, "lores") as m:
+    image = m.array
+    cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", image)
+    print("Rescue_Camera_Pre_callback")
 Rescue_Camera_PORT = 1
 Rescue_Camera_Controls = {
     "AfMode": controls.AfModeEnum.Continuous,
@@ -425,7 +429,7 @@ Rescue_Camera_size = (4608, 2592)
 Rescue_Camera_formats = "RGB888"
 Rescue_Camera_lores_size = (Rescue_Camera_size[0] // 4,
                             Rescue_Camera_size[1] // 4)
-Rescue_Camera_Pre_Callback_func = Linetrace_Camera_Pre_callback
+Rescue_Camera_Pre_Callback_func = Rescue_Camera_Pre_callback
 
 Linetrace_Camera_PORT = 0
 Linetrace_Camera_Controls = {
