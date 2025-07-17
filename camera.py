@@ -29,9 +29,14 @@ class Camera:
         ))
     self.cam.pre_callback = self.pre_callback_func
     self.cam.set_controls(self.controls)
+    self.is_camera_running = False
 
   def start_cam(self):
-    self.cam.start()
+    if not self.is_camera_running:
+      self.cam.start()
+      self.is_camera_running = True
 
   def stop_cam(self):
-    self.cam.stop()
+    if self.is_camera_running:
+      self.cam.stop()
+      self.is_camera_running = False
