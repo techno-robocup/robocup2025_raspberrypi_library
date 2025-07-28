@@ -21,10 +21,10 @@ SLOPE_LOCK = threading.Lock()
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 
-computing_P = 1
+computing_P = 500
 
 # Green mark detection variables
-min_green_area = 0  # Minimum area for a green mark to be considered valid
+min_green_area = 200  # Minimum area for a green mark to be considered valid
 green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
@@ -32,6 +32,9 @@ green_black_detected = [
 min_red_area = 500  #TODO:Set red size
 red_marks = []
 red_black_detected = []
+
+# Black line detection variables
+min_black_line_area = 100  # Minimum area for a black line to be considered valid
 
 
 def detect_green_marks(orig_image, blackline_image):
@@ -142,6 +145,10 @@ def detect_green_marks(orig_image, blackline_image):
         if black_detections[3]:
           cv2.line(image, (center_x + 10, center_y - 10),
                    (center_x + 10, center_y + 10), (255, 0, 0), 2)
+
+  # Save the image with X marks drawn on it
+  if DEBUG_MODE and len(green_marks) > 0:
+    cv2.imwrite(f"bin/{str(time.time())}_green_marks_with_x.jpg", image)
 
 
 def detect_red_marks(orig_image, blackline_image):
@@ -302,6 +309,13 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
 
   # Process each contour
   for i, contour in enumerate(contours):
+    # Check minimum area requirement for black lines
+    contour_area = cv2.contourArea(contour)
+    if contour_area < min_black_line_area:
+      if DEBUG_MODE:
+        logger.debug(f"Black line contour {i} skipped: area {contour_area} < {min_black_line_area}")
+      continue  # Skip small contours
+      
     # Get bounding box
     rect = cv2.minAreaRect(contour)
     box = cv2.boxPoints(rect)
@@ -381,9 +395,9 @@ def calculate_slope(contour, cx, cy):
 
     # Calculate slope between top and center points
     if cx != base_x:  # Avoid division by zero or tiny values
-      return (base_y - cy) / (base_x - cx)
+      return (base_y - cy) / (cx - base_x)
     else:
-      return 0
+      return 10**9
   except Exception as e:
     if DEBUG_MODE:
       logger.error(f"Error in calculate_slope: {e}")
