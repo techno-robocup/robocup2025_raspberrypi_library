@@ -8,7 +8,7 @@ import modules.log
 
 logger = modules.log.get_logger()
 DEBUG_MODE = True
-Black_White_Threshold = 125
+Black_White_Threshold = 95
 
 Linetrace_Camera_lores_height = 180
 Linetrace_Camera_lores_width = 320
@@ -24,7 +24,7 @@ slope = 0
 computing_P = 1
 
 # Green mark detection variables
-min_green_area = 500  # Minimum area for a green mark to be considered valid
+min_green_area = 0  # Minimum area for a green mark to be considered valid
 green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
@@ -44,8 +44,8 @@ def detect_green_marks(orig_image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([35, 60, 0])
-  upper_green = np.array([85, 255, 255])
+  lower_green = np.array([30, 0, 0])
+  upper_green = np.array([110, 255, 255])
 
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -72,6 +72,7 @@ def detect_green_marks(orig_image, blackline_image):
     if cv2.contourArea(contour) > min_green_area:
       # Get bounding box
       x, y, w, h = cv2.boundingRect(contour)
+      logger.debug(f"Green mark found at ({x}, {y}) with size ({w}, {h})")
 
       # Calculate center point
       center_x = x + w // 2
@@ -445,7 +446,8 @@ Linetrace_Camera_Controls = {
     "AwbMode": controls.AwbModeEnum.Indoor,
     "HdrMode": controls.HdrModeEnum.Night
 }
-Linetrace_Camera_size = (4608, 2592)
+# Linetrace_Camera_size = (4608, 2592)
+Linetrace_Camera_size = (3456, 2592)
 Linetrace_Camera_formats = "RGB888"
 Linetrace_Camera_lores_size = (Linetrace_Camera_lores_width,
                                Linetrace_Camera_lores_height)
