@@ -265,7 +265,7 @@ def Linetrace_Camera_Pre_callback(request):
 
         # If no contours found, keep previous values and return
         if not contours:
-          slope = 10 ** 9
+          slope = 10**9
           return
 
         # Find the best contour to follow
@@ -273,7 +273,7 @@ def Linetrace_Camera_Pre_callback(request):
                                          lastblackline)
 
         if best_contour is None:
-          slope = 10 ** 9
+          slope = 10**9
           return
 
         # Calculate center point of contour
