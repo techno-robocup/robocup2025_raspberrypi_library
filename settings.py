@@ -1,3 +1,4 @@
+# sett
 from libcamera import controls
 from picamera2 import MappedArray
 import cv2
@@ -197,7 +198,8 @@ def detect_red_marks(orig_image, blackline_image):
       center_x = x + w // 2
       center_y = y + h // 2
       red_marks.append((center_x, center_y, w, h))
-
+      if center_y < image.shape[0] // 2:
+        SystemExit #TODO: Stop 3s
       # X mark & black line's border
 
       if DEBUG_MODE:
