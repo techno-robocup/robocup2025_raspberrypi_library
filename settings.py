@@ -191,7 +191,9 @@ def detect_red_marks(orig_image, blackline_image):
   red_black_detected = []
 
   for contour in contours:
+    logger.debug("In red contour check")
     if cv2.contourArea(contour) > min_red_area:
+      logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
 
@@ -210,6 +212,9 @@ def detect_red_marks(orig_image, blackline_image):
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
         cv2.imwrite(f"bin/{time_str}_red_marks.jpg", image)
+    else:
+      logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
+
 
 
 #@jit(nopython=True)
