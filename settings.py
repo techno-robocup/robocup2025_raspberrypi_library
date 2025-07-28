@@ -192,6 +192,7 @@ def detect_red_marks(orig_image, blackline_image):
 
   for contour in contours:
     if cv2.contourArea(contour) > min_red_area:
+      sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
 
       center_x = x + w // 2
