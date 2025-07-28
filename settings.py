@@ -157,21 +157,21 @@ def detect_red_marks(orig_image, blackline_image):
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-  lower_red1 = np.array([0, 40, 0])
-  upper_red1 = np.array([30, 255, 255])
+  # lower_red1 = np.array([0, 40, 0])
+  # upper_red1 = np.array([30, 255, 255])
 
   #TODO: Fix this range
   #lower_red2 = np.array([190, 40, 0])
   #upper_red2 = np.array([255, 255, 255])
 
-  lower_red2 = np.array([100, 40, 0])
-  upper_red2 = np.array([180, 255, 255])
+  lower_red2 = np.array([130, 160, 0])
+  upper_red2 = np.array([179, 255, 255])
 
-  red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-  red_mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+  # red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+  red_mask = cv2.inRange(hsv, lower_red2, upper_red2)
 
   # Create overlapping mask using bitwise OR
-  red_mask = cv2.bitwise_or(red_mask1, red_mask2)
+  # red_mask = cv2.bitwise_or(red_mask1, red_mask2)
 
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
@@ -180,8 +180,8 @@ def detect_red_marks(orig_image, blackline_image):
 
   if DEBUG_MODE:
     time_str = str(time.time())
-    cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
-    cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
+    # cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
+    # cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
