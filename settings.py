@@ -216,7 +216,6 @@ def detect_red_marks(orig_image, blackline_image):
       logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
 
 
-
 #@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
   if DEBUG_MODE:
