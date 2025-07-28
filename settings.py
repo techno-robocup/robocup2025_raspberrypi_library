@@ -5,6 +5,7 @@ import time
 import numpy as np
 import threading
 import modules.log
+import sys
 
 logger = modules.log.get_logger()
 DEBUG_MODE = True
@@ -201,6 +202,7 @@ def detect_red_marks(orig_image, blackline_image):
       center_y = y + h // 2
       red_marks.append((center_x, center_y, w, h))
       if center_y < image.shape[0] // 2:
+        logger.debug("Read red line.")
         sys.exit(0)  #TODO: Stop 3s
       # X mark & black line's border
 
@@ -299,6 +301,9 @@ def Linetrace_Camera_Pre_callback(request):
           debug_image = visualize_tracking(image, best_contour, cx, cy)
           cv2.imwrite(f"bin/{str(time.time())}_tracking.jpg", debug_image)
 
+  except SystemExit:
+    print("SystemExit caught")
+    raise
   except Exception as e:
     if DEBUG_MODE:
       logger.error(f"Error in line tracing: {e}")
