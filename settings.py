@@ -37,6 +37,7 @@ red_black_detected = []
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
 stop_requested = False
 
+
 def detect_green_marks(orig_image, blackline_image):
   """Detect multiple X-shaped green marks and their relationship with black lines."""
   image = orig_image.copy()
