@@ -35,6 +35,7 @@ red_black_detected = []
 
 # Black line detection variables
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
+stop_requested = False
 
 
 def detect_green_marks(orig_image, blackline_image):
@@ -200,6 +201,7 @@ def detect_red_marks(orig_image, blackline_image):
       red_marks.append((center_x, center_y, w, h))
       if center_y < image.shape[0] // 2:
         logger.debug("Read red line.")
+        stop_requested = True
         # sys.exit(0)  #TODO: Stop 3s
       # X mark & black line's border
 
