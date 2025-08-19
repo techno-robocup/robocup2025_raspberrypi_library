@@ -203,7 +203,7 @@ def detect_red_marks(orig_image, blackline_image):
       red_marks.append((center_x, center_y, w, h))
       if center_y < image.shape[0] // 2:
         logger.debug("Read red line.")
-        sys.exit(0)  #TODO: Stop 3s
+        # sys.exit(0)  #TODO: Stop 3s
       # X mark & black line's border
 
       if DEBUG_MODE:
