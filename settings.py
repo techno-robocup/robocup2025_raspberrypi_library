@@ -5,7 +5,6 @@ import time
 import numpy as np
 import threading
 import modules.log
-import sys
 
 logger = modules.log.get_logger()
 DEBUG_MODE = True
