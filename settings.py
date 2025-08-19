@@ -30,7 +30,7 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 500  #TODO:Set red size
+min_red_area = 20  #TODO:Set red size
 red_marks = []
 red_black_detected = []
 
@@ -162,8 +162,6 @@ def detect_red_marks(orig_image, blackline_image):
   # upper_red1 = np.array([30, 255, 255])
 
   #TODO: Fix this range
-  lower_red2 = np.array([190, 40, 0])
-  upper_red2 = np.array([255, 255, 255])
 
   lower_red2 = np.array([130, 160, 0])
   upper_red2 = np.array([179, 255, 255])
@@ -182,7 +180,7 @@ def detect_red_marks(orig_image, blackline_image):
   if DEBUG_MODE:
     time_str = str(time.time())
     # cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
-    # cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
+    # cv2.imwrite(f"bin/{time_str}_red_mask2.jp  #g", red_mask2)
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
@@ -194,8 +192,8 @@ def detect_red_marks(orig_image, blackline_image):
   for contour in contours:
     logger.debug("In red contour check")
     if cv2.contourArea(contour) > min_red_area:
-      logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
-      sys.exit(0)
+      # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
+      # sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
 
       center_x = x + w // 2
