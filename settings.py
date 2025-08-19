@@ -220,8 +220,8 @@ def detect_red_marks(orig_image, blackline_image):
 
 #@jit(nopython=True)
 def Linetrace_Camera_Pre_callback(request):
-  if DEBUG_MODE:
-    logger.debug("Linetrace precallback called")
+  # if DEBUG_MODE:
+  #   logger.debug("Linetrace precallback called")
 
   # Global variables for line following
   global lastblackline, slope
