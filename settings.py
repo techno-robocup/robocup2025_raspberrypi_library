@@ -29,7 +29,7 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 100  #TODO:Set red size
+min_red_area = 100000  #TODO:Set red size
 red_marks = []
 red_black_detected = []
 
@@ -48,7 +48,7 @@ def detect_green_marks(orig_image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([60, 40, 20])
+  lower_green = np.array([30, 40, 20])
   upper_green = np.array([110, 255, 255])
 
   # Create mask for green color
