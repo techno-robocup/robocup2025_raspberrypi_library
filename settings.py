@@ -152,7 +152,7 @@ def detect_green_marks(orig_image, blackline_image):
     cv2.imwrite(f"bin/{str(time.time())}_green_marks_with_x.jpg", image)
 
 
-def detect_red_marks(orig_image):
+def detect_red_marks(orig_image, blackline_image):
   image = orig_image.copy()
   global red_marks, red_black_detected
   global stop_requested
