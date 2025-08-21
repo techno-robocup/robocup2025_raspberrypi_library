@@ -29,7 +29,7 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 100000  #TODO:Set red size
+min_red_area = 1000  #TODO:Set red size
 red_marks = []
 red_black_detected = []
 
@@ -200,7 +200,7 @@ def detect_red_marks(orig_image, blackline_image):
       center_x = x + w // 2
       center_y = y + h // 2
       red_marks.append((center_x, center_y, w, h))
-      if center_y < image.shape[0] // 2:
+      if center_y > image.shape[0] // 2:
         logger.debug("Read red line.")
         stop_requested = True
         # sys.exit(0)  #TODO: Stop 3s
