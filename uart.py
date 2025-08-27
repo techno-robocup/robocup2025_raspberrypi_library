@@ -66,7 +66,6 @@ class UART_CON:
 
     def _send():
       self.Serial_Port.write(str(message).encode("ascii"))
-      logger.debug(f"Sent \"{str(message).strip()}\"")
       return True
 
     timeout = 1
@@ -88,7 +87,6 @@ class UART_CON:
 
     def _receive():
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
-      logger.debug(f"Received \"{message_str}\" from ESP32")
       return Message(message_str)
 
     timeout = 1
