@@ -176,7 +176,7 @@ def detect_red_marks(orig_image, blackline_image):
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
   red_mask = cv2.erode(red_mask, kernel, iterations=2)
-  red_mask = cv2.dilate(red_mask, kernel, iterations=2)
+  red_mask = cv2.dilate(red_mask, kernel, iterations=5)
 
   if DEBUG_MODE:
     time_str = str(time.time())
