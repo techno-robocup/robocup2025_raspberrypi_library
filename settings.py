@@ -54,7 +54,7 @@ def detect_green_marks(orig_image, blackline_image):
   # Define green color range
   # [h, s, v]
 
-  lower_green = np.array([30, 40, 20])# NOTE: Green 30,90 40,255 20,255
+  lower_green = np.array([30, 40, 20])  # NOTE: Green 30,90 40,255 20,255
   upper_green = np.array([90, 255, 255])
 
   # Create mask for green color
