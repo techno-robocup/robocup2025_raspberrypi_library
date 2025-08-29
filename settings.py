@@ -32,10 +32,17 @@ green_black_detected = [
 
 min_red_area = 500  #TODO:Set red size
 red_marks = []
-red_black_detected = []
+
+
+min_server_area = 1000
+server_marks = []
+
 
 # Black line detection variables
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
+
+stop_requested = False
+is_rescue_area = False
 
 
 def detect_green_marks(orig_image, blackline_image):
@@ -48,7 +55,7 @@ def detect_green_marks(orig_image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([30, 0, 0])
+  lower_green = np.array([30, 40, 20]) #NOTE:Green 30,100 40,255 20,255
   upper_green = np.array([110, 255, 255])
 
   # Create mask for green color
@@ -152,9 +159,10 @@ def detect_green_marks(orig_image, blackline_image):
     cv2.imwrite(f"bin/{str(time.time())}_green_marks_with_x.jpg", image)
 
 
-def detect_red_marks(orig_image, blackline_image):
+def detect_red_marks(orig_image):
   image = orig_image.copy()
-  global red_marks, red_black_detected
+  global red_marks
+  global stop_requested
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -165,7 +173,7 @@ def detect_red_marks(orig_image, blackline_image):
   lower_red2 = np.array([190, 40, 0])
   upper_red2 = np.array([255, 255, 255])
 
-  lower_red2 = np.array([130, 160, 0])
+  lower_red2 = np.array([130, 160, 0])#NOTE:RED 130.179 160,255 0,255
   upper_red2 = np.array([179, 255, 255])
 
   # red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
@@ -189,7 +197,6 @@ def detect_red_marks(orig_image, blackline_image):
                                  cv2.CHAIN_APPROX_SIMPLE)
 
   red_marks = []
-  red_black_detected = []
 
   for contour in contours:
     logger.debug("In red contour check")
@@ -216,6 +223,57 @@ def detect_red_marks(orig_image, blackline_image):
         cv2.imwrite(f"bin/{time_str}_red_marks.jpg", image)
     else:
       logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
+
+
+def detect_server_marks(orig_image):
+  image = orig_image.copy()
+  global server_marks
+  global is_rescue_area
+
+  hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+  #TODO: Fix this range
+
+  lower_server = np.array([102, 87, 0])
+  upper_server = np.array([115, 128, 255])
+
+  server_mask = cv2.inRange(hsv, lower_server, upper_server)
+
+  # Clean up noise
+  kernel = np.ones((3, 3), np.uint8)
+  server_mask = cv2.erode(server_mask, kernel, iterations=2)
+  server_mask = cv2.dilate(server_mask, kernel, iterations=2)
+
+  if DEBUG_MODE:
+    time_str = str(time.time())
+    cv2.imwrite(f"bin/{time_str}_server_mask.jpg", server_mask)
+
+  contours, _ = cv2.findContours(server_mask, cv2.RETR_EXTERNAL,
+                                 cv2.CHAIN_APPROX_SIMPLE)
+
+  server_marks = []
+
+  for contour in contours:
+    logger.debug("In server contour check")
+    if cv2.contourArea(contour) > min_server_area:
+      # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
+      # sys.exit(0)
+      x, y, w, h = cv2.boundingRect(contour)
+
+      center_x = x + w // 2
+      center_y = y + h // 2
+      server_marks.append((center_x, center_y, w, h))
+      if DEBUG_MODE:
+        # Draw X mark
+        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255),
+                 2)
+        cv2.line(image, (x + w, y), (x, y + h), (0, 0, 255), 2)
+        # Draw center point
+        cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
+        cv2.imwrite(f"bin/{time_str}_server_marks.jpg", image)
+    else:
+      logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
+
 
 
 #@jit(nopython=True)
@@ -265,8 +323,9 @@ def Linetrace_Camera_Pre_callback(request):
         binary_image = cv2.dilate(binary_image, kernel, iterations=3)
 
         # Detect green marks and their relationship with black lines
-        detect_red_marks(image2, binary_image)
+        detect_red_marks(image2)
         detect_green_marks(image, binary_image)
+        detect_server_marks(image2)
 
         # Find contours of the black line
         contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
