@@ -171,7 +171,7 @@ def detect_red_marks(orig_image):
 
   #TODO: Fix this range
 
-  lower_red2 = np.array([130, 160, 0])  #NOTE:RED 130.179 160,255 0,255
+  lower_red2 = np.array([130, 130, 0])  #NOTE:RED 130.179 160,255 0,255
   upper_red2 = np.array([179, 255, 255])
 
   # red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
