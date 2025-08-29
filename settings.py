@@ -285,6 +285,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Get image from camera
         image = m.array
         image2 = image.copy()
+        image3 = image.copy()
 
         # Get camera dimensions
         camera_x = Linetrace_Camera_lores_width
@@ -320,7 +321,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Detect green marks and their relationship with black lines
         detect_red_marks(image2)
         detect_green_marks(image, binary_image)
-        detect_server_marks(image2)
+        detect_server_marks(image3)
 
         # Find contours of the black line
         contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
