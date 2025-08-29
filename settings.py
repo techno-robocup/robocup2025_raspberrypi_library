@@ -54,7 +54,7 @@ def detect_green_marks(orig_image, blackline_image):
   # Define green color range
   # [h, s, v]
 
-  lower_green = np.array([30, 40, 20])
+  lower_green = np.array([30, 40, 20])# NOTE: Green 30,90 40,255 20,255
   upper_green = np.array([90, 255, 255])
 
   # Create mask for green color
@@ -231,8 +231,8 @@ def detect_server_marks(orig_image):
 
   #TODO: Fix this range
 
-  lower_server = np.array([102, 0, 0])
-  upper_server = np.array([115, 255, 255])
+  lower_server = np.array([91, 0, 0])
+  upper_server = np.array([129, 255, 255])
 
   server_mask = cv2.inRange(hsv, lower_server, upper_server)
 
@@ -251,7 +251,6 @@ def detect_server_marks(orig_image):
   server_marks = []
 
   for contour in contours:
-    logger.debug("In server contour check")
     if cv2.contourArea(contour) > min_server_area:
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
@@ -260,6 +259,8 @@ def detect_server_marks(orig_image):
       center_x = x + w // 2
       center_y = y + h // 2
       server_marks.append((center_x, center_y, w, h))
+      if center_y > image.shape[0] // 2:
+        is_rescue_area = True
       if DEBUG_MODE:
         # Draw X mark
         cv2.line(image, (x, y), (x + w, y + h), (125, 125, 125), 2)
@@ -285,7 +286,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Get image from camera
         image = m.array
         image2 = image.copy()
-        image3 = image.copy()
+        image3 = image2.copy()
 
         # Get camera dimensions
         camera_x = Linetrace_Camera_lores_width
