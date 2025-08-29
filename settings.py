@@ -32,10 +32,8 @@ green_black_detected = [
 min_red_area = 1000  #TODO:Set red size
 red_marks = []
 
-
 min_server_area = 1000
 server_marks = []
-
 
 # Black line detection variables
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
@@ -173,7 +171,7 @@ def detect_red_marks(orig_image):
 
   #TODO: Fix this range
 
-  lower_red2 = np.array([130, 160, 0])#NOTE:RED 130.179 160,255 0,255
+  lower_red2 = np.array([130, 160, 0])  #NOTE:RED 130.179 160,255 0,255
   upper_red2 = np.array([179, 255, 255])
 
   # red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
@@ -264,15 +262,13 @@ def detect_server_marks(orig_image):
       server_marks.append((center_x, center_y, w, h))
       if DEBUG_MODE:
         # Draw X mark
-        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255),
-                 2)
+        cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
         cv2.line(image, (x + w, y), (x, y + h), (0, 0, 255), 2)
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
         cv2.imwrite(f"bin/{time_str}_server_marks.jpg", image)
     else:
       logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
-
 
 
 #@jit(nopython=True)
