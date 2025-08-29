@@ -32,7 +32,7 @@ green_black_detected = [
 min_red_area = 500  #TODO:Set red size
 red_marks = []
 
-min_server_area = 500
+min_server_area = 200
 server_marks = []
 
 # Black line detection variables
@@ -231,8 +231,9 @@ def detect_server_marks(orig_image):
 
   #TODO: Fix this range
 
-  lower_server = np.array([91, 0, 0])
-  upper_server = np.array([129, 255, 255])
+  lower_server = np.array([85, 50, 50])
+  upper_server = np.array([105, 255, 255])
+
 
   server_mask = cv2.inRange(hsv, lower_server, upper_server)
 
