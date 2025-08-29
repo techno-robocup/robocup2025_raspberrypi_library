@@ -231,10 +231,12 @@ def detect_server_marks(orig_image):
 
   #TODO: Fix this range
 
-  lower_server = np.array([85, 50, 50])
-  upper_server = np.array([105, 255, 255])
+
+  lower_server = np.array([100, 40, 200])
+  upper_server = np.array([112, 130, 255])
 
   server_mask = cv2.inRange(hsv, lower_server, upper_server)
+
 
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
