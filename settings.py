@@ -188,7 +188,7 @@ def detect_red_marks(orig_image):
   if DEBUG_MODE:
     time_str = str(time.time())
     # cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
-    # cv2.imwrite(f"bin/{time_str}_red_mask2.jp  #g", red_mask2)
+    # cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
