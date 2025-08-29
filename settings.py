@@ -234,7 +234,6 @@ def detect_server_marks(orig_image):
   lower_server = np.array([85, 50, 50])
   upper_server = np.array([105, 255, 255])
 
-
   server_mask = cv2.inRange(hsv, lower_server, upper_server)
 
   # Clean up noise
