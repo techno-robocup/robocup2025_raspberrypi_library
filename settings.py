@@ -252,7 +252,7 @@ def detect_server_marks(orig_image):
 
   for contour in contours:
     if cv2.contourArea(contour) > min_server_area:
-      logger.debug(f"Read server line")
+      logger.debug("Read server line")
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
