@@ -383,10 +383,6 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
     # Check minimum area requirement for black lines
     contour_area = cv2.contourArea(contour)
     if contour_area < min_black_line_area:
-      if DEBUG_MODE:
-        logger.debug(
-            f"Black line contour {i} skipped: area {contour_area} < {min_black_line_area}"
-        )
       continue  # Skip small contours
 
     # Get bounding box
