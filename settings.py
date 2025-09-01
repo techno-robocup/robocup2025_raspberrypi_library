@@ -252,7 +252,7 @@ def detect_silver_marks(orig_image):
 
   for contour in contours:
     if cv2.contourArea(contour) < min_silver_area:
-      logger.debug(f"Read silver line")
+      logger.debug("Read silver line")
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
