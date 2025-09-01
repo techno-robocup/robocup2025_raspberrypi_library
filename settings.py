@@ -32,8 +32,8 @@ green_black_detected = [
 min_red_area = 500  #TODO:Set red size
 red_marks = []
 
-min_server_area = 200
-server_marks = []
+min_silver_area = 200
+silver_marks = []
 
 # Black line detection variables
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
@@ -222,44 +222,44 @@ def detect_red_marks(orig_image):
       pass
 
 
-def detect_server_marks(orig_image):
+def detect_silver_marks(orig_image):
   image = orig_image.copy()
-  global server_marks
+  global silver_marks
   global is_rescue_area
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
   #TODO: Fix this range
 
-  lower_server = np.array([0, 0, 200])
-  upper_server = np.array([179, 60, 255])
+  lower_silver = np.array([0, 0, 200])
+  upper_silver = np.array([179, 60, 255])
 
-  server_mask = cv2.inRange(hsv, lower_server, upper_server)
+  silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
 
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
-  server_mask = cv2.erode(server_mask, kernel, iterations=2)
-  server_mask = cv2.dilate(server_mask, kernel, iterations=2)
+  silver_mask = cv2.erode(silver_mask, kernel, iterations=2)
+  silver_mask = cv2.dilate(silver_mask, kernel, iterations=2)
 
   if DEBUG_MODE:
     time_str = str(time.time())
-    cv2.imwrite(f"bin/{time_str}_server_mask.jpg", server_mask)
+    cv2.imwrite(f"bin/{time_str}_silver_mask.jpg", silver_mask)
 
-  contours, _ = cv2.findContours(server_mask, cv2.RETR_EXTERNAL,
+  contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
 
-  server_marks = []
+  silver_marks = []
 
   for contour in contours:
-    if cv2.contourArea(contour) > min_server_area:
-      logger.debug("Read server line")
+    if cv2.contourArea(contour) < min_silver_area:
+      logger.debug("Read silver line")
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
       x, y, w, h = cv2.boundingRect(contour)
 
       center_x = x + w // 2
       center_y = y + h // 2
-      server_marks.append((center_x, center_y, w, h))
+      silver_marks.append((center_x, center_y, w, h))
       if center_y > image.shape[0] // 2:
         is_rescue_area = True
       if DEBUG_MODE:
@@ -268,7 +268,7 @@ def detect_server_marks(orig_image):
         cv2.line(image, (x + w, y), (x, y + h), (125, 125, 125), 2)
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (125, 125, 125), -1)
-        cv2.imwrite(f"bin/{time_str}_server_marks.jpg", image)
+        cv2.imwrite(f"bin/{time_str}_silver_marks.jpg", image)
     else:
       logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
 
@@ -323,7 +323,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Detect green marks and their relationship with black lines
         detect_red_marks(image2)
         detect_green_marks(image, binary_image)
-        detect_server_marks(image3)
+        detect_silver_marks(image3)
 
         # Find contours of the black line
         contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
