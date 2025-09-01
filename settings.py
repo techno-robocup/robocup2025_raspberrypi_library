@@ -21,7 +21,7 @@ SLOPE_LOCK = threading.Lock()
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 
-computing_P = 500
+computing_P = 250
 
 # Green mark detection variables
 min_green_area = 200  # Minimum area for a green mark to be considered valid
