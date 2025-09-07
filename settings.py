@@ -29,7 +29,7 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 500  #TODO:Set red size
+min_red_area = 800  #TODO:Set red size
 red_marks = []
 
 min_silver_area = 200
