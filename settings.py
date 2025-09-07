@@ -168,7 +168,6 @@ def detect_red_marks(orig_image):
 
   #TODO: Fix this range
 
-
   lower_red2 = np.array([150, 200, 200])  #NOTE:RED 130.179 130,255 0,255
   upper_red2 = np.array([179, 255, 255])
 
