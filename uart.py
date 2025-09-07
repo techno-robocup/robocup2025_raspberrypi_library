@@ -76,14 +76,12 @@ class UART_CON:
       else:
         logger.error(f"Serial communication error: {error}")
       return False
-    logger.debug(f"Sent message: {message.getMessage().strip()} successfully")
     return result
 
   def receive_message(self):
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
-    logger.debug("Receive_message function called")
 
     def _receive():
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
@@ -97,7 +95,6 @@ class UART_CON:
       else:
         logger.error(f"Serial communication error: {error}")
       return False
-    logger.debug(f"Received message: {result}")
     return result
 
   def close(self):

@@ -21,7 +21,7 @@ SLOPE_LOCK = threading.Lock()
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 
-computing_P = 500
+computing_P = 300
 
 # Green mark detection variables
 min_green_area = 200  # Minimum area for a green mark to be considered valid
@@ -29,13 +29,18 @@ green_marks = []  # List to store all detected green marks
 green_black_detected = [
 ]  # List to store black line detection around each green mark
 
-min_red_area = 1000  #TODO:Set red size
+min_red_area = 500  #TODO:Set red size
 red_marks = []
-red_black_detected = []
+
+min_silver_area = 200
+silver_marks = []
 
 # Black line detection variables
 min_black_line_area = 100  # Minimum area for a black line to be considered valid
 stop_requested = False
+
+stop_requested = False
+is_rescue_area = False
 
 
 def detect_green_marks(orig_image, blackline_image):
@@ -48,8 +53,9 @@ def detect_green_marks(orig_image, blackline_image):
 
   # Define green color range
   # [h, s, v]
-  lower_green = np.array([30, 40, 20])
-  upper_green = np.array([110, 255, 255])
+
+  lower_green = np.array([30, 40, 20])  # NOTE: Green 30,90 40,255 20,255
+  upper_green = np.array([90, 255, 255])
 
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -152,9 +158,10 @@ def detect_green_marks(orig_image, blackline_image):
     cv2.imwrite(f"bin/{str(time.time())}_green_marks_with_x.jpg", image)
 
 
-def detect_red_marks(orig_image, blackline_image):
+def detect_red_marks(orig_image):
   image = orig_image.copy()
-  global red_marks, red_black_detected
+  global red_marks
+
   global stop_requested
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -164,7 +171,7 @@ def detect_red_marks(orig_image, blackline_image):
 
   #TODO: Fix this range
 
-  lower_red2 = np.array([130, 160, 0])
+  lower_red2 = np.array([130, 130, 0])  #NOTE:RED 130.179 130,255 0,255
   upper_red2 = np.array([179, 255, 255])
 
   # red_mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
@@ -181,17 +188,15 @@ def detect_red_marks(orig_image, blackline_image):
   if DEBUG_MODE:
     time_str = str(time.time())
     # cv2.imwrite(f"bin/{time_str}_red_mask1.jpg", red_mask1)
-    # cv2.imwrite(f"bin/{time_str}_red_mask2.jp  #g", red_mask2)
+    # cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
 
   red_marks = []
-  red_black_detected = []
 
   for contour in contours:
-    logger.debug("In red contour check")
     if cv2.contourArea(contour) > min_red_area:
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
@@ -201,7 +206,6 @@ def detect_red_marks(orig_image, blackline_image):
       center_y = y + h // 2
       red_marks.append((center_x, center_y, w, h))
       if center_y > image.shape[0] // 2:
-        logger.debug("Read red line.")
         stop_requested = True
         # sys.exit(0)  #TODO: Stop 3s
       # X mark & black line's border
@@ -214,6 +218,57 @@ def detect_red_marks(orig_image, blackline_image):
         # Draw center point
         cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
         cv2.imwrite(f"bin/{time_str}_red_marks.jpg", image)
+    else:
+      pass
+
+
+def detect_silver_marks(orig_image):
+  image = orig_image.copy()
+  global silver_marks
+  global is_rescue_area
+
+  hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+  #TODO: Fix this range
+
+  lower_silver = np.array([0, 0, 200])
+  upper_silver = np.array([179, 60, 255])
+
+  silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
+
+  # Clean up noise
+  kernel = np.ones((3, 3), np.uint8)
+  silver_mask = cv2.erode(silver_mask, kernel, iterations=2)
+  silver_mask = cv2.dilate(silver_mask, kernel, iterations=2)
+
+  if DEBUG_MODE:
+    time_str = str(time.time())
+    cv2.imwrite(f"bin/{time_str}_silver_mask.jpg", silver_mask)
+
+  contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
+                                 cv2.CHAIN_APPROX_SIMPLE)
+
+  silver_marks = []
+
+  for contour in contours:
+    if cv2.contourArea(contour) < min_silver_area:
+      # logger.debug("Read silver line")
+      # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
+      # sys.exit(0)
+      x, y, w, h = cv2.boundingRect(contour)
+
+      center_x = x + w // 2
+      center_y = y + h // 2
+      silver_marks.append((center_x, center_y, w, h))
+      if center_y > image.shape[0] // 2:
+        is_rescue_area = True
+      if DEBUG_MODE:
+        # Draw X mark
+        cv2.line(image, (x, y), (x + w, y + h), (125, 125, 125), 2)
+        cv2.line(image, (x + w, y), (x, y + h), (125, 125, 125), 2)
+        # Draw center point
+        cv2.circle(image, (center_x, center_y), 5, (125, 125, 125), -1)
+        cv2.imwrite(f"bin/{time_str}_silver_marks.jpg", image)
     else:
       logger.debug(f"Skipping because {str(cv2.contourArea(contour))}")
 
@@ -232,6 +287,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Get image from camera
         image = m.array
         image2 = image.copy()
+        image3 = image2.copy()
 
         # Get camera dimensions
         camera_x = Linetrace_Camera_lores_width
@@ -265,8 +321,9 @@ def Linetrace_Camera_Pre_callback(request):
         binary_image = cv2.dilate(binary_image, kernel, iterations=3)
 
         # Detect green marks and their relationship with black lines
-        detect_red_marks(image2, binary_image)
+        detect_red_marks(image2)
         detect_green_marks(image, binary_image)
+        detect_silver_marks(image3)
 
         # Find contours of the black line
         contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
@@ -326,10 +383,6 @@ def find_best_contour(contours, camera_x, camera_y, last_center):
     # Check minimum area requirement for black lines
     contour_area = cv2.contourArea(contour)
     if contour_area < min_black_line_area:
-      if DEBUG_MODE:
-        logger.debug(
-            f"Black line contour {i} skipped: area {contour_area} < {min_black_line_area}"
-        )
       continue  # Skip small contours
 
     # Get bounding box
