@@ -277,6 +277,7 @@ def Linetrace_Camera_Pre_callback(request):
 
   # Global variables for line following
   global lastblackline, slope
+  current_time = time.time()
 
   try:
     with linetracecam_threadlock:
@@ -292,7 +293,7 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Save original image for debugging
         if DEBUG_MODE:
-          cv2.imwrite(f"bin/{str(time.time())}_original.jpg", image)
+          cv2.imwrite(f"bin/{str(current_time)}_original.jpg", image)
 
         # Convert image to grayscale
         gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -305,7 +306,7 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Save binary image for debugging
         if DEBUG_MODE:
-          cv2.imwrite(f"bin/{str(time.time())}_binary.jpg", binary_image)
+          cv2.imwrite(f"bin/{str(current_time)}_binary.jpg", binary_image)
 
         # Clean up noise with morphological operations
         kernel = np.ones((3, 3), np.uint8)
@@ -353,7 +354,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Create debug visualization if needed
         if DEBUG_MODE:
           debug_image = visualize_tracking(image, best_contour, cx, cy)
-          cv2.imwrite(f"bin/{str(time.time())}_tracking.jpg", debug_image)
+          cv2.imwrite(f"bin/{str(current_time)}_tracking.jpg", debug_image)
 
   except SystemExit:
     print("SystemExit caught")
