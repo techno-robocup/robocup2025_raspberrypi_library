@@ -1,12 +1,13 @@
-from typing import Callable
+from typing import Callable, Any, Dict, Tuple
 from picamera2 import Picamera2
 
 
 class Camera:
+  """Camera class for handling Picamera2 operations."""
 
-  def __init__(self, PORT: int, controls: dict[str, any], size: tuple[int, int],
-               formats: str, lores_size: tuple[int, int],
-               pre_callback_func: Callable[[any], any]):
+  def __init__(self, PORT: int, controls: Dict[str, Any], size: Tuple[int, int],
+               formats: str, lores_size: Tuple[int, int],
+               pre_callback_func: Callable[[Any], Any]):
     self.PORT = PORT
     self.controls = controls
     self.size = size
@@ -31,12 +32,14 @@ class Camera:
     self.cam.set_controls(self.controls)
     self.is_camera_running = False
 
-  def start_cam(self):
+  def start_cam(self) -> None:
+    """Start the camera if not already running."""
     if not self.is_camera_running:
       self.cam.start()
       self.is_camera_running = True
 
-  def stop_cam(self):
+  def stop_cam(self) -> None:
+    """Stop the camera if currently running."""
     if self.is_camera_running:
       self.cam.stop()
       self.is_camera_running = False

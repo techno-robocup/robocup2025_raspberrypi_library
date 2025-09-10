@@ -3,11 +3,13 @@ from serial.tools import list_ports
 import modules.log
 import modules.settings
 import time
+from typing import Optional
 
 logger = modules.log.get_logger()
 
 
 class Message:
+  """Message class for UART communication."""
 
   def __init__(self, *args):
     if len(args) == 2:
@@ -22,23 +24,25 @@ class Message:
           "Message must be initialized with either (id, message) or (combined_string)"
       )
 
-  def __str__(self):
+  def __str__(self) -> str:
     return f"{self.id} {self.message}\n"
 
-  def getId(self):
+  def getId(self) -> int:
     return self.id
 
-  def getMessage(self):
+  def getMessage(self) -> str:
     return self.message
 
 
 class UART_CON:
+  """UART communication class."""
 
   def __init__(self):
-    self.Serial_Port = None
+    self.Serial_Port: Optional[serial.Serial] = None
     self.connect_to_port()
 
-  def connect_to_port(self):
+  def connect_to_port(self) -> None:
+    """Connect to the first available UART port."""
     while True:
       try:
         available_ports = list(list_ports.comports())
@@ -54,17 +58,18 @@ class UART_CON:
         time.sleep(1)
         continue
 
-      Serial_Port_Id = available_ports[0].device
+      serial_port_id = available_ports[0].device
       logger.debug(f"Using {available_ports[0].device}")
-      self.Serial_Port = serial.Serial(Serial_Port_Id, 9600, timeout=None)
+      self.Serial_Port = serial.Serial(serial_port_id, 9600, timeout=None)
       break
 
-  def send_message(self, message):
+  def send_message(self, message: Message) -> bool:
+    """Send a message via UART."""
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
       return False
 
-    def _send():
+    def _send() -> bool:
       self.Serial_Port.write(str(message).encode("ascii"))
       return True
 
@@ -78,12 +83,13 @@ class UART_CON:
       return False
     return result
 
-  def receive_message(self):
+  def receive_message(self) -> Optional[Message]:
+    """Receive a message via UART."""
     if not self.Serial_Port or not self.Serial_Port.is_open:
       logger.error("Serial port not open")
-      return False
+      return None
 
-    def _receive():
+    def _receive() -> Message:
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       return Message(message_str)
 
@@ -94,10 +100,11 @@ class UART_CON:
         logger.error(f"Receive message timed out after {timeout} seconds")
       else:
         logger.error(f"Serial communication error: {error}")
-      return False
+      return None
     return result
 
-  def close(self):
+  def close(self) -> None:
+    """Close the UART connection."""
     if self.Serial_Port and self.Serial_Port.is_open:
       self.Serial_Port.close()
       logger.debug("Serial port closed")
