@@ -190,7 +190,7 @@ def detect_red_marks(orig_image):
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
   red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
+                                     cv2.CHAIN_APPROX_SIMPLE)
 
   for contour in red_contours:
     if cv2.contourArea(contour) > min_red_area:
@@ -355,7 +355,8 @@ def Linetrace_Camera_Pre_callback(request):
             x, y, w, h = cv2.boundingRect(countour)
             cv2.line(debug_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
             cv2.line(debug_image, (x + w, y), (x, y + h), (0, 0, 255), 2)
-            cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 0, 255), -1)
+            cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 0, 255),
+                       -1)
           cv2.imwrite(f"bin/{str(current_time)}_tracking.jpg", debug_image)
 
   except SystemExit:
