@@ -21,6 +21,10 @@ SLOPE_LOCK = threading.Lock()
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 
+red_countours = []
+green_countours = []
+silver_countours = []
+
 computing_P = 200
 
 # Green mark detection variables
@@ -30,7 +34,6 @@ green_black_detected = [
 ]  # List to store black line detection around each green mark
 
 min_red_area = 800  #TODO:Set red size
-red_marks = []
 
 min_silver_area = 200
 silver_marks = []
@@ -160,9 +163,7 @@ def detect_green_marks(orig_image, blackline_image):
 
 def detect_red_marks(orig_image):
   image = orig_image.copy()
-  global red_marks
-
-  global stop_requested
+  global stop_requested, red_countours
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -188,12 +189,10 @@ def detect_red_marks(orig_image):
     # cv2.imwrite(f"bin/{time_str}_red_mask2.jpg", red_mask2)
     cv2.imwrite(f"bin/{time_str}_red_mask.jpg", red_mask)
 
-  contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
+  red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
 
-  red_marks = []
-
-  for contour in contours:
+  for contour in red_contours:
     if cv2.contourArea(contour) > min_red_area:
       # logger.debug(f"Exitting {str(cv2.contourArea(contour))}")
       # sys.exit(0)
@@ -201,7 +200,6 @@ def detect_red_marks(orig_image):
 
       center_x = x + w // 2
       center_y = y + h // 2
-      red_marks.append((center_x, center_y, w, h))
       if center_y > image.shape[0] // 2:
         stop_requested = True
         # sys.exit(0)  #TODO: Stop 3s
@@ -352,6 +350,12 @@ def Linetrace_Camera_Pre_callback(request):
         # Create debug visualization if needed
         if DEBUG_MODE:
           debug_image = visualize_tracking(image, best_contour, cx, cy)
+          # Red countours
+          for countour in red_countours:
+            x, y, w, h = cv2.boundingRect(countour)
+            cv2.line(debug_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.line(debug_image, (x + w, y), (x, y + h), (0, 0, 255), 2)
+            cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 0, 255), -1)
           cv2.imwrite(f"bin/{str(current_time)}_tracking.jpg", debug_image)
 
   except SystemExit:
