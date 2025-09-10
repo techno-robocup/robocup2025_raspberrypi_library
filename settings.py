@@ -46,7 +46,8 @@ stop_requested = False
 is_rescue_area = False
 
 
-def detect_green_marks(orig_image: np.ndarray, blackline_image: np.ndarray) -> None:
+def detect_green_marks(orig_image: np.ndarray,
+                       blackline_image: np.ndarray) -> None:
   """Detect multiple X-shaped green marks and their relationship with black lines."""
   global green_marks, green_black_detected, green_contours
 
@@ -62,7 +63,10 @@ def detect_green_marks(orig_image: np.ndarray, blackline_image: np.ndarray) -> N
 
   # Clean up noise with optimized kernel
   kernel = np.ones((3, 3), np.uint8)
-  green_mask = cv2.morphologyEx(green_mask, cv2.MORPH_OPEN, kernel, iterations=2)
+  green_mask = cv2.morphologyEx(green_mask,
+                                cv2.MORPH_OPEN,
+                                kernel,
+                                iterations=2)
 
   # Save green mask for debugging
   if DEBUG_MODE:
@@ -91,12 +95,14 @@ def detect_green_marks(orig_image: np.ndarray, blackline_image: np.ndarray) -> N
       green_marks.append((center_x, center_y, w, h))
 
       # Check for black lines around the mark
-      black_detections = _check_black_lines_around_mark(
-          blackline_image, center_x, center_y, w, h)
+      black_detections = _check_black_lines_around_mark(blackline_image,
+                                                        center_x, center_y, w,
+                                                        h)
       green_black_detected.append(black_detections)
 
       if DEBUG_MODE:
-        _draw_green_mark_debug(orig_image, x, y, w, h, center_x, center_y, black_detections)
+        _draw_green_mark_debug(orig_image, x, y, w, h, center_x, center_y,
+                               black_detections)
 
   # Save the image with X marks drawn on it
   if DEBUG_MODE and green_marks:
@@ -130,7 +136,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
       x, y, w, h = cv2.boundingRect(contour)
       center_x = x + w // 2
       center_y = y + h // 2
-      
+
       if center_y > orig_image.shape[0] // 2:
         stop_requested = True
 
@@ -152,7 +158,10 @@ def detect_silver_marks(orig_image: np.ndarray) -> None:
 
   # Clean up noise
   kernel = np.ones((3, 3), np.uint8)
-  silver_mask = cv2.morphologyEx(silver_mask, cv2.MORPH_OPEN, kernel, iterations=2)
+  silver_mask = cv2.morphologyEx(silver_mask,
+                                 cv2.MORPH_OPEN,
+                                 kernel,
+                                 iterations=2)
 
   if DEBUG_MODE:
     cv2.imwrite(f"bin/{time.time():.3f}_silver_mask.jpg", silver_mask)
@@ -167,53 +176,60 @@ def detect_silver_marks(orig_image: np.ndarray) -> None:
       x, y, w, h = cv2.boundingRect(contour)
       center_x = x + w // 2
       center_y = y + h // 2
-      
+
       silver_marks.append((center_x, center_y, w, h))
       if center_y > orig_image.shape[0] // 2:
         is_rescue_area = True
-        
+
       if DEBUG_MODE:
         _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
 
 
-def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int, center_y: int, 
-                                  w: int, h: int) -> np.ndarray:
+def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
+                                   center_y: int, w: int, h: int) -> np.ndarray:
   """Check for black lines around a mark in four directions."""
   black_detections = np.zeros(4, dtype=np.int8)  # [bottom, top, left, right]
-  
+
   # Define ROI sizes relative to mark size
   roi_width = int(w * 0.5)
   roi_height = int(h * 0.5)
-  
+
   # Check bottom
-  roi_b = blackline_image[center_y + h // 2:min(center_y + h // 2 + roi_height, LINETRACE_CAMERA_LORES_HEIGHT),
+  roi_b = blackline_image[center_y +
+                          h // 2:min(center_y + h // 2 +
+                                     roi_height, LINETRACE_CAMERA_LORES_HEIGHT),
                           center_x - roi_width // 2:center_x + roi_width // 2]
   if roi_b.size > 0 and np.mean(roi_b) > BLACK_WHITE_THRESHOLD:
     black_detections[0] = 1
 
   # Check top
-  roi_t = blackline_image[max(center_y - h // 2 - roi_height, 0):center_y - h // 2,
+  roi_t = blackline_image[max(center_y - h // 2 -
+                              roi_height, 0):center_y - h // 2,
                           center_x - roi_width // 2:center_x + roi_width // 2]
   if roi_t.size > 0 and np.mean(roi_t) > BLACK_WHITE_THRESHOLD:
     black_detections[1] = 1
 
   # Check left
   roi_l = blackline_image[center_y - roi_height // 2:center_y + roi_height // 2,
-                          max(center_x - w // 2 - roi_width, 0):center_x - w // 2]
+                          max(center_x - w // 2 - roi_width, 0):center_x -
+                          w // 2]
   if roi_l.size > 0 and np.mean(roi_l) > BLACK_WHITE_THRESHOLD:
     black_detections[2] = 1
 
   # Check right
   roi_r = blackline_image[center_y - roi_height // 2:center_y + roi_height // 2,
-                          center_x + w // 2:min(center_x + w // 2 + roi_width, LINETRACE_CAMERA_LORES_WIDTH)]
+                          center_x +
+                          w // 2:min(center_x + w // 2 +
+                                     roi_width, LINETRACE_CAMERA_LORES_WIDTH)]
   if roi_r.size > 0 and np.mean(roi_r) > BLACK_WHITE_THRESHOLD:
     black_detections[3] = 1
-    
+
   return black_detections
 
 
-def _draw_green_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int, 
-                          center_x: int, center_y: int, black_detections: np.ndarray) -> None:
+def _draw_green_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
+                           center_x: int, center_y: int,
+                           black_detections: np.ndarray) -> None:
   """Draw debug visualization for green marks."""
   # Draw X mark
   cv2.line(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -222,17 +238,21 @@ def _draw_green_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
   cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
   # Draw black line detection indicators
   if black_detections[0]:
-    cv2.line(image, (center_x - 10, center_y + 10), (center_x + 10, center_y + 10), (255, 0, 0), 2)
+    cv2.line(image, (center_x - 10, center_y + 10),
+             (center_x + 10, center_y + 10), (255, 0, 0), 2)
   if black_detections[1]:
-    cv2.line(image, (center_x - 10, center_y - 10), (center_x + 10, center_y - 10), (255, 0, 0), 2)
+    cv2.line(image, (center_x - 10, center_y - 10),
+             (center_x + 10, center_y - 10), (255, 0, 0), 2)
   if black_detections[2]:
-    cv2.line(image, (center_x - 10, center_y - 10), (center_x - 10, center_y + 10), (255, 0, 0), 2)
+    cv2.line(image, (center_x - 10, center_y - 10),
+             (center_x - 10, center_y + 10), (255, 0, 0), 2)
   if black_detections[3]:
-    cv2.line(image, (center_x + 10, center_y - 10), (center_x + 10, center_y + 10), (255, 0, 0), 2)
+    cv2.line(image, (center_x + 10, center_y - 10),
+             (center_x + 10, center_y + 10), (255, 0, 0), 2)
 
 
-def _draw_red_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int, 
-                        center_x: int, center_y: int) -> None:
+def _draw_red_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
+                         center_x: int, center_y: int) -> None:
   """Draw debug visualization for red marks."""
   # Draw X mark
   cv2.line(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
@@ -242,8 +262,8 @@ def _draw_red_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
   cv2.imwrite(f"bin/{time.time():.3f}_red_marks.jpg", image)
 
 
-def _draw_silver_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int, 
-                           center_x: int, center_y: int) -> None:
+def _draw_silver_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
+                            center_x: int, center_y: int) -> None:
   """Draw debug visualization for silver marks."""
   # Draw X mark
   cv2.line(image, (x, y), (x + w, y + h), (125, 125, 125), 2)
@@ -281,7 +301,10 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Clean up noise with morphological operations (optimized)
         kernel = np.ones((3, 3), np.uint8)
-        binary_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel, iterations=2)
+        binary_image = cv2.morphologyEx(binary_image,
+                                        cv2.MORPH_CLOSE,
+                                        kernel,
+                                        iterations=2)
 
         # Detect marks in parallel (if threading is available)
         detect_red_marks(image)
@@ -289,8 +312,9 @@ def Linetrace_Camera_Pre_callback(request):
         detect_silver_marks(image)
 
         # Find contours of the black line
-        contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE,
-                                       cv2.CHAIN_APPROX_SIMPLE)  # Use SIMPLE for better performance
+        contours, _ = cv2.findContours(
+            binary_image, cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_SIMPLE)  # Use SIMPLE for better performance
 
         # If no contours found, keep previous values and return
         if not contours:
@@ -298,8 +322,9 @@ def Linetrace_Camera_Pre_callback(request):
           return
 
         # Find the best contour to follow
-        best_contour = find_best_contour(contours, LINETRACE_CAMERA_LORES_WIDTH, 
-                                        LINETRACE_CAMERA_LORES_HEIGHT, lastblackline)
+        best_contour = find_best_contour(contours, LINETRACE_CAMERA_LORES_WIDTH,
+                                         LINETRACE_CAMERA_LORES_HEIGHT,
+                                         lastblackline)
 
         if best_contour is None:
           slope = None
@@ -338,27 +363,32 @@ def _draw_debug_contours(debug_image: np.ndarray) -> None:
     cv2.line(debug_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
     cv2.line(debug_image, (x + w, y), (x, y + h), (0, 0, 255), 2)
     cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 0, 255), -1)
-    
+
   # Green contours
   for contour, black_detection in zip(green_contours, green_black_detected):
     x, y, w, h = cv2.boundingRect(contour)
     cv2.line(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
     cv2.line(debug_image, (x + w, y), (x, y + h), (0, 255, 0), 2)
     cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 255, 0), -1)
-    
+
     # Draw black line detection indicators
     center_x, center_y = x + w // 2, y + h // 2
     if black_detection[0]:
-      cv2.line(debug_image, (center_x, center_y), (center_x, center_y + 10), (255, 0, 0), 2)
+      cv2.line(debug_image, (center_x, center_y), (center_x, center_y + 10),
+               (255, 0, 0), 2)
     if black_detection[1]:
-      cv2.line(debug_image, (center_x, center_y), (center_x, center_y - 10), (255, 0, 0), 2)
+      cv2.line(debug_image, (center_x, center_y), (center_x, center_y - 10),
+               (255, 0, 0), 2)
     if black_detection[2]:
-      cv2.line(debug_image, (center_x, center_y), (center_x - 10, center_y), (255, 0, 0), 2)
+      cv2.line(debug_image, (center_x, center_y), (center_x - 10, center_y),
+               (255, 0, 0), 2)
     if black_detection[3]:
-      cv2.line(debug_image, (center_x, center_y), (center_x + 10, center_y), (255, 0, 0), 2)
+      cv2.line(debug_image, (center_x, center_y), (center_x + 10, center_y),
+               (255, 0, 0), 2)
 
 
-def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int, last_center: int) -> Optional[np.ndarray]:
+def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
+                      last_center: int) -> Optional[np.ndarray]:
   """
   Find the best contour to follow from multiple candidates.
   Prioritizes contours at the bottom of the image and close to the last position.
@@ -368,18 +398,18 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int, 
   """
   if not contours:
     return None
-    
+
   # Filter contours by minimum area first
-  valid_contours = [(i, contour) for i, contour in enumerate(contours) 
-                   if cv2.contourArea(contour) >= MIN_BLACK_LINE_AREA]
-  
+  valid_contours = [(i, contour) for i, contour in enumerate(contours)
+                    if cv2.contourArea(contour) >= MIN_BLACK_LINE_AREA]
+
   if not valid_contours:
     return None
 
   # Process valid contours
   candidates = []
   bottom_contours = 0
-  
+
   for i, contour in valid_contours:
     # Get bounding box
     rect = cv2.minAreaRect(contour)
@@ -389,7 +419,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int, 
 
     # Calculate line width at bottom
     width = abs(box[0][0] - box[1][0])
-    
+
     # Check if contour extends to bottom of image
     is_bottom = box[0][1] >= (camera_y * 0.95)
     if is_bottom:
@@ -412,7 +442,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int, 
   # If multiple contours at bottom, choose based on width and distance
   if bottom_contours > 1:
     bottom_candidates = [c for c in candidates if c['is_bottom']]
-    
+
     for candidate in bottom_candidates:
       center_x = (candidate['x1'] + candidate['x2']) / 2
       distance = abs(last_center - center_x)
@@ -464,7 +494,8 @@ def calculate_slope(contour: np.ndarray, cx: int, cy: int) -> float:
     return 0.0
 
 
-def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int, cy: int) -> np.ndarray:
+def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
+                       cy: int) -> np.ndarray:
   """Create a visualization image showing tracking information."""
   # Make a copy of the image for drawing
   vis_image = image.copy()
@@ -507,7 +538,8 @@ RESCUE_CAMERA_CONTROLS = {
 }
 RESCUE_CAMERA_SIZE = (4608, 2592)
 RESCUE_CAMERA_FORMATS = "RGB888"
-RESCUE_CAMERA_LORES_SIZE = (RESCUE_CAMERA_SIZE[0] // 4, RESCUE_CAMERA_SIZE[1] // 4)
+RESCUE_CAMERA_LORES_SIZE = (RESCUE_CAMERA_SIZE[0] // 4,
+                            RESCUE_CAMERA_SIZE[1] // 4)
 RESCUE_CAMERA_PRE_CALLBACK_FUNC = Rescue_Camera_Pre_callback
 
 LINETRACE_CAMERA_PORT = 1
@@ -523,7 +555,8 @@ LINETRACE_CAMERA_CONTROLS = {
 }
 LINETRACE_CAMERA_SIZE = (3456, 2592)
 LINETRACE_CAMERA_FORMATS = "RGB888"
-LINETRACE_CAMERA_LORES_SIZE = (LINETRACE_CAMERA_LORES_WIDTH, LINETRACE_CAMERA_LORES_HEIGHT)
+LINETRACE_CAMERA_LORES_SIZE = (LINETRACE_CAMERA_LORES_WIDTH,
+                               LINETRACE_CAMERA_LORES_HEIGHT)
 LINETRACE_CAMERA_PRE_CALLBACK_FUNC = Linetrace_Camera_Pre_callback
 
 
