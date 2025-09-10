@@ -49,7 +49,7 @@ is_rescue_area = False
 def detect_green_marks(orig_image, blackline_image):
   """Detect multiple X-shaped green marks and their relationship with black lines."""
   image = orig_image.copy()
-  global green_marks, green_black_detected
+  global green_marks, green_black_detected, green_contours
 
   # Convert to HSV
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -73,7 +73,7 @@ def detect_green_marks(orig_image, blackline_image):
     cv2.imwrite(f"bin/{str(time.time())}_green_mask.jpg", green_mask)
 
   # Find contours
-  contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL,
+  green_contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL,
                                  cv2.CHAIN_APPROX_SIMPLE)
 
   # Reset global variables
@@ -81,7 +81,7 @@ def detect_green_marks(orig_image, blackline_image):
   green_black_detected = []
 
   # Process each contour
-  for contour in contours:
+  for contour in green_contours:
     if cv2.contourArea(contour) > min_green_area:
       # Get bounding box
       x, y, w, h = cv2.boundingRect(contour)
@@ -357,6 +357,21 @@ def Linetrace_Camera_Pre_callback(request):
             cv2.line(debug_image, (x + w, y), (x, y + h), (0, 0, 255), 2)
             cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 0, 255),
                        -1)
+          # Green countours
+          for countour, black_detection in zip(green_contours, green_black_detected):
+            x, y, w, h = cv2.boundingRect(countour)
+            cv2.line(debug_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.line(debug_image, (x + w, y), (x, y + h), (0, 255, 0), 2)
+            cv2.circle(debug_image, (x + w // 2, y + h // 2), 5, (0, 255, 0),
+                       -1)
+            if black_detection[0]:
+              cv2.line(debug_image, (x + w // 2, y + h // 2), (x + w // 2, y + h // 2 + 10), (255, 0, 0), 2)
+            if black_detection[1]:
+              cv2.line(debug_image, (x + w // 2, y + h // 2), (x + w // 2, y + h // 2 - 10), (255, 0, 0), 2)
+            if black_detection[2]:
+              cv2.line(debug_image, (x + w // 2, y + h // 2), (x + w // 2 - 10, y + h // 2), (255, 0, 0), 2)
+            if black_detection[3]:
+              cv2.line(debug_image, (x + w // 2, y + h // 2), (x + w // 2 + 10, y + h // 2), (255, 0, 0), 2)
           cv2.imwrite(f"bin/{str(current_time)}_tracking.jpg", debug_image)
 
   except SystemExit:
