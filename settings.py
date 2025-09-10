@@ -21,9 +21,9 @@ SLOPE_LOCK = threading.Lock()
 lastblackline = Linetrace_Camera_lores_width // 2  # Initialize to center
 slope = 0
 
-red_countours = []
-green_countours = []
-silver_countours = []
+red_contours = []
+green_contours = []
+silver_contours = []
 
 computing_P = 200
 
@@ -163,7 +163,7 @@ def detect_green_marks(orig_image, blackline_image):
 
 def detect_red_marks(orig_image):
   image = orig_image.copy()
-  global stop_requested, red_countours
+  global stop_requested, red_contours
 
   hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -351,7 +351,7 @@ def Linetrace_Camera_Pre_callback(request):
         if DEBUG_MODE:
           debug_image = visualize_tracking(image, best_contour, cx, cy)
           # Red countours
-          for countour in red_countours:
+          for countour in red_contours:
             x, y, w, h = cv2.boundingRect(countour)
             cv2.line(debug_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
             cv2.line(debug_image, (x + w, y), (x, y + h), (0, 0, 255), 2)
