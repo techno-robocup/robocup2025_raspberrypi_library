@@ -133,15 +133,15 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
 
   for contour in red_contours:
     #if cv2.contourArea(contour) > MIN_RED_AREA:
-      x, y, w, h = cv2.boundingRect(contour)
-      center_x = x + w // 2
-      center_y = y + h // 2
+    x, y, w, h = cv2.boundingRect(contour)
+    center_x = x + w // 2
+    center_y = y + h // 2
 
-      #if center_y > orig_image.shape[0] // 2:
-      stop_requested = True
+    #if center_y > orig_image.shape[0] // 2:
+    stop_requested = True
 
-      if DEBUG_MODE:
-        _draw_red_mark_debug(orig_image, x, y, w, h, center_x, center_y)
+    if DEBUG_MODE:
+      _draw_red_mark_debug(orig_image, x, y, w, h, center_x, center_y)
 
 
 def detect_silver_marks(orig_image: np.ndarray) -> None:
