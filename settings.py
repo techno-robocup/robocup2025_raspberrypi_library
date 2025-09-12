@@ -132,13 +132,14 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
                                      cv2.CHAIN_APPROX_SIMPLE)
 
   for contour in red_contours:
-    logger.debug(f"Read red-------")
     if cv2.contourArea(contour) > MIN_RED_AREA:
+      logger.debug(f"Red^2---------")
       x, y, w, h = cv2.boundingRect(contour)
       center_x = x + w // 2
       center_y = y + h // 2
 
-      if center_y > orig_image.shape[0] // 2:
+      #if center_y > orig_image.shape[0] // 2:
+        logger.debug(f"Read red-------")
         stop_requested = True
 
       if DEBUG_MODE:
