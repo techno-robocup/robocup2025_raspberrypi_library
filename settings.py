@@ -14,74 +14,7 @@ DEBUG_MODE = True
 BLACK_WHITE_THRESHOLD = 95
 LINETRACE_CAMERA_LORES_HEIGHT = 180
 LINETRACE_CAMERA_LORES_WIDTH = 320
-
-# PID Controller constants
-PID_KP = 250.0  # Proportional gain
-PID_KI = 0.1  # Integral gain
-PID_KD = 50.0  # Derivative gain
-PID_MAX_INTEGRAL = 1000.0  # Maximum integral term to prevent windup
-
-
-class PIDController:
-  """PID Controller for line following."""
-
-  def __init__(self, kp: float, ki: float, kd: float, max_integral: float):
-    self.kp = kp
-    self.ki = ki
-    self.kd = kd
-    self.max_integral = max_integral
-
-    self.previous_error = 0.0
-    self.integral = 0.0
-    self.last_time = time.time()
-
-  def compute(self, error: float) -> float:
-    """
-    Compute PID output based on error.
-    
-    Args:
-      error: Current error value
-      
-    Returns:
-      float: PID controller output
-    """
-    current_time = time.time()
-    dt = current_time - self.last_time
-
-    if dt <= 0.0:
-      dt = 0.01  # Minimum time step to avoid division by zero
-
-    # Proportional term
-    proportional = self.kp * error
-
-    # Integral term
-    self.integral += error * dt
-    # Prevent integral windup
-    if self.integral > self.max_integral:
-      self.integral = self.max_integral
-    elif self.integral < -self.max_integral:
-      self.integral = -self.max_integral
-    integral = self.ki * self.integral
-
-    # Derivative term
-    derivative = self.kd * (error - self.previous_error) / dt
-
-    # Update values for next iteration
-    self.previous_error = error
-    self.last_time = current_time
-
-    # Return PID output
-    return proportional + integral + derivative
-
-  def reset(self):
-    """Reset PID controller state."""
-    self.previous_error = 0.0
-    self.integral = 0.0
-    self.last_time = time.time()
-
-
-# Global PID controller instance
-pid_controller = PIDController(PID_KP, PID_KI, PID_KD, PID_MAX_INTEGRAL)
+COMPUTING_P = 250
 
 # Detection thresholds
 MIN_GREEN_AREA = 200
