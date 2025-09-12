@@ -17,8 +17,8 @@ LINETRACE_CAMERA_LORES_WIDTH = 320
 
 # PID Controller constants
 PID_KP = 250.0  # Proportional gain
-PID_KI = 0.1    # Integral gain
-PID_KD = 50.0   # Derivative gain
+PID_KI = 0.1  # Integral gain
+PID_KD = 50.0  # Derivative gain
 PID_MAX_INTEGRAL = 1000.0  # Maximum integral term to prevent windup
 
 
@@ -30,7 +30,7 @@ class PIDController:
     self.ki = ki
     self.kd = kd
     self.max_integral = max_integral
-    
+
     self.previous_error = 0.0
     self.integral = 0.0
     self.last_time = time.time()
@@ -47,13 +47,13 @@ class PIDController:
     """
     current_time = time.time()
     dt = current_time - self.last_time
-    
+
     if dt <= 0.0:
       dt = 0.01  # Minimum time step to avoid division by zero
-    
+
     # Proportional term
     proportional = self.kp * error
-    
+
     # Integral term
     self.integral += error * dt
     # Prevent integral windup
@@ -62,14 +62,14 @@ class PIDController:
     elif self.integral < -self.max_integral:
       self.integral = -self.max_integral
     integral = self.ki * self.integral
-    
+
     # Derivative term
     derivative = self.kd * (error - self.previous_error) / dt
-    
+
     # Update values for next iteration
     self.previous_error = error
     self.last_time = current_time
-    
+
     # Return PID output
     return proportional + integral + derivative
 
