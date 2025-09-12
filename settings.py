@@ -138,7 +138,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
       center_y = y + h // 2
 
       #if center_y > orig_image.shape[0] // 2:
-      logger.debug(f"Read red-------")
+      logger.debug("Read red-------")
       stop_requested = True
 
       if DEBUG_MODE:
