@@ -302,9 +302,9 @@ def Linetrace_Camera_Pre_callback(request):
         # Clean up noise with morphological operations (optimized)
         kernel = np.ones((3, 3), np.uint8)
         binary_image = cv2.morphologyEx(binary_image,
-                                        cv2.MORPH_CLOSE,
+                                        cv2.MORPH_OPEN,
                                         kernel,
-                                        iterations=2)
+                                        iterations=3)
 
         # Detect marks in parallel (if threading is available)
         detect_red_marks(image)
