@@ -42,7 +42,6 @@ green_black_detected: List[np.ndarray] = []
 silver_marks: List[Tuple[int, int, int, int]] = []
 
 # Control flags
-read_red = 0
 stop_requested = False
 is_rescue_area = False
 
@@ -112,7 +111,7 @@ def detect_green_marks(orig_image: np.ndarray,
 
 def detect_red_marks(orig_image: np.ndarray) -> None:
   """Detect red marks and set stop_requested flag."""
-  global stop_requested, red_contours, read_red
+  global stop_requested, red_contours
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Red color range
@@ -130,7 +129,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
 
   red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
                                      cv2.CHAIN_APPROX_SIMPLE)
-
+  read_red = 0
   for contour in red_contours:
     #if cv2.contourArea(contour) > MIN_RED_AREA:
     x, y, w, h = cv2.boundingRect(contour)
