@@ -112,7 +112,7 @@ def detect_green_marks(orig_image: np.ndarray,
 
 def detect_red_marks(orig_image: np.ndarray) -> None:
   """Detect red marks and set stop_requested flag."""
-  global stop_requested, red_contours,read_red
+  global stop_requested, red_contours, read_red
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Red color range
