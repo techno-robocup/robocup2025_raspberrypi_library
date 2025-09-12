@@ -116,7 +116,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Red color range
-  lower_red = np.array([150, 200, 200])
+  lower_red = np.array([150, 130, 160])
   upper_red = np.array([179, 255, 255])
 
   red_mask = cv2.inRange(hsv, lower_red, upper_red)
