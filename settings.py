@@ -18,7 +18,7 @@ LINETRACE_CAMERA_LORES_WIDTH = 320
 # PID Controller constants
 PID_KP = 250.0  # Proportional gain
 PID_KI = 0.01  # Integral gain
-PID_KD = 50.0  # Derivative gain
+PID_KD = 100.0  # Derivative gain
 PID_MAX_INTEGRAL = 1000.0  # Maximum integral term to prevent windup
 
 
