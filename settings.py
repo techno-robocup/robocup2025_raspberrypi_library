@@ -308,7 +308,7 @@ def Linetrace_Camera_Pre_callback(request):
         # Detect marks in parallel (if threading is available)
         detect_red_marks(image)
         detect_green_marks(image, binary_image)
-        detect_silver_marks(image)
+        #detect_silver_marks(image)
 
         # Find contours of the black line
         contours, _ = cv2.findContours(
