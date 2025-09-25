@@ -520,7 +520,8 @@ def Rescue_Camera_Pre_callback(request):
   """Rescue camera callback function."""
   with MappedArray(request, "lores") as m:
     image = m.array
-    cv2.imwrite(f"bin/{time.time():.3f}_rescue.jpg", image)
+    fixed_image = cv2.rotate(image, cv2.ROTATE_180)
+    cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
     print("Rescue_Camera_Pre_callback")
 
 
