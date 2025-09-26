@@ -115,7 +115,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Red color range
-  lower_red = np.array([150, 130, 160])
+  lower_red = np.array([160, 70, 110])
   upper_red = np.array([179, 255, 255])
 
   red_mask = cv2.inRange(hsv, lower_red, upper_red)
@@ -131,7 +131,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
                                      cv2.CHAIN_APPROX_SIMPLE)
   read_red = 0
   for contour in red_contours:
-    #if cv2.contourArea(contour) > MIN_RED_AREA:
+    #if cv2.contourArea(contour) > MIN_RED_AREA://TODO: check area
     x, y, w, h = cv2.boundingRect(contour)
     center_x = x + w // 2
     center_y = y + h // 2
@@ -144,45 +144,71 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
 
 
 def detect_silver_marks(orig_image: np.ndarray) -> None:
-  """Detect silver marks and set rescue area flag."""
-  global silver_marks, is_rescue_area
+    # Convert to HSV (silver ≈ low saturation + high value)
+  hsv = cv2.cvtColor(orig_img, cv2.COLOR_BGR2HSV)
+  lower = np.array([0, 0, 180])
+  upper = np.array([180, 50, 255])
+  mask = cv2.inRange(hsv, lower, upper)
 
-  hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
+  # Find contours
+  contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-  # Silver color range
-  lower_silver = np.array([0, 0, 200])
-  upper_silver = np.array([179, 60, 255])
+  for cnt in contours:
+    if cv2.contourArea(cnt) > 100:  # skip small noise
+      M = cv2.moments(cnt)
+      if M["m00"] != 0:
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        
+        # Draw center on image
+        cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
+        
+        # Check position vs. middle
+        if cy > mid_y:   # center is lower half
+          is_rescue_area = True
 
-  silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
+  #"""Detect silver marks and set rescue area flag."""
+  #global silver_marks, is_rescue_area
 
-  # Clean up noise
-  kernel = np.ones((3, 3), np.uint8)
-  silver_mask = cv2.morphologyEx(silver_mask,
-                                 cv2.MORPH_OPEN,
-                                 kernel,
-                                 iterations=2)
+  #hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
-  if DEBUG_MODE:
-    cv2.imwrite(f"bin/{time.time():.3f}_silver_mask.jpg", silver_mask)
+  ## Silver color range
+  #lower_silver = np.array([0, 0, 200])
+  #upper_silver = np.array([179, 60, 255])
 
-  contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_SIMPLE)
+  #silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
 
-  silver_marks.clear()
+  ## Clean up noise
+  #kernel = np.ones((3, 3), np.uint8)
+  #silver_mask = cv2.morphologyEx(silver_mask,
+  #                               cv2.MORPH_OPEN,
+  #                               kernel,
+  #                               iterations=2)
 
-  for contour in contours:
-    if cv2.contourArea(contour) < MIN_SILVER_AREA:
-      x, y, w, h = cv2.boundingRect(contour)
-      center_x = x + w // 2
-      center_y = y + h // 2
+  #if DEBUG_MODE:
+  #  cv2.imwrite(f"bin/{time.time():.3f}_silver_mask.jpg", silver_mask)
 
-      silver_marks.append((center_x, center_y, w, h))
-      if center_y > orig_image.shape[0] // 2:
-        is_rescue_area = True
+  #contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
+  #                               cv2.CHAIN_APPROX_SIMPLE)
 
-      if DEBUG_MODE:
-        _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
+  #silver_marks.clear()
 
+  #for contour in contours:
+  #  if cv2.contourArea(contour) < MIN_SILVER_AREA:
+  #    x, y, w, h = cv2.boundingRect(contour)
+  #    center_x = x + w // 2
+  #    center_y = y + h // 2
+
+  #    silver_marks.append((center_x, center_y, w, h))
+  #    if center_y > orig_image.shape[0] // 2:
+  #      is_rescue_area = True
+
+  #    if DEBUG_MODE:
+  #      _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
+
+  img = cv2.imread("silver_line.png")
+  h, w, _ = img.shape
+  mid_y = h // 2   # middle of the picture (height)
 
 def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
                                    center_y: int, w: int, h: int) -> np.ndarray:
