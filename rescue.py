@@ -4,6 +4,7 @@ import numpy as np
 from ultralytics import YOLO
 from enum import Enum
 import time
+import threading
 
 
 class ObjectClasses(Enum):
@@ -115,14 +116,17 @@ def set_motor_speeds_from_angle():
 		L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
 		R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
 
-def turn():
+def turn_threaded(duration=1):
 	global L_motor_value, R_motor_value
 	L_motor_value = int(TP*(MOTOR_NEUTRAL - MOTOR_MAX_TURN))
 	R_motor_value = int(TP*(MOTOR_NEUTRAL + MOTOR_MAX_TURN))
-	time.sleep(1)
+	time.sleep(duration)
 	L_motor_value = MOTOR_NEUTRAL
 	R_motor_value = MOTOR_NEUTRAL
 
+def turn():
+	t = threading.Thread(target=turn_threaded, args=(1,))
+	t.start()
 
 def catch_ball(u_sonicU):
 	global R_motor_value,L_motor_value
