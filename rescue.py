@@ -1,88 +1,128 @@
-import cv2
+# import cv2
 import settings
+import numpy as np
 from ultralytics import YOLO
+from enum import Enum
 
-model = YOLO("best.pt")
 
-silver_ball_cnt = 0
-black_ball_cnt = 0
-is_ball_caching = False
-is_task_done = False
+class ObjectClasses(Enum):
+	BLACK_BALL = 0
+	RED_CACHE = 1
+	GREEN_CACHE = 2
+	SILVER_BALL = 4
+	FINAL_TARGET = 5
 
-L_motor_value = 1500
-R_motor_value = 1500
 
-threshold = 5.0
-kp = 0.1
+MODEL = YOLO("best.pt")
+KP = 0.1
+THRESHOLD = 10.0  # Increased slightly for more stability
+MOTOR_NEUTRAL = 1500
+MOTOR_MAX_TURN = 100
 
-target_angle = None
 
-#Rescue Cam Size:4608, 2592
-def get_centers(image_path) -> None:
-		global target_angle, is_ball_caching, black_ball_cnt, silver_ball_cnt
+class RobotState:
+	def __init__(self):
+		self.silver_ball_cnt = 0
+		self.black_ball_cnt = 0
+		self.is_ball_caching = False
+		self.is_task_done = False
+		self.is_aligned = False
+		self.L_motor_value = MOTOR_NEUTRAL
+		self.R_motor_value = MOTOR_NEUTRAL
+		self.target_angle = None
 
-		img = cv2.imread(image_path)
-		if img is None:
-				print(f"Error: could not load {image_path}")
-				return
 
-		h, w, _ = img.shape
-		cx = w // 2
-		target_angle = None
+robot = RobotState()
 
-		results = model(image_path, verbose=False)
-		boxes = results[0].boxes
 
-		if not (black_ball_cnt == 2 and silver_ball_cnt == 0):
-				if not is_ball_caching:
-						for box in boxes:
-								cls = int(box.cls[0])
-								if cls == 0 and black_ball_cnt < 2:
-										x_center = float(box.xywh[0][0])
-										target_angle = x_center - cx
-										break
-								elif cls == 4 and black_ball_cnt == 2:
-										x_center = float(box.xywh[0][0])
-										target_angle = x_center - cx
-										break
-				else:
-						for box in boxes:
-								cls = int(box.cls[0])
-								if black_ball_cnt < 2 and cls == 1:
-										x_center = float(box.xywh[0][0])
-										target_angle = x_center - cx
-										break
-								elif black_ball_cnt >= 2 and cls == 2:
-										x_center = float(box.xywh[0][0])
-										target_angle = x_center - cx
-										break
+def find_best_target(boxes, valid_classes, image_width):
+	"""Finds all valid targets and returns the one closest to the center."""
+	best_target_angle = None
+	min_dist_from_center = float("inf")
+	image_center_x = image_width / 2
+
+	for box in boxes:
+		cls = int(box.cls[0])
+		if cls in valid_classes:
+			x_center = float(box.xywh[0][0])
+			dist_from_center = abs(x_center - image_center_x)
+
+			if dist_from_center < min_dist_from_center:
+				min_dist_from_center = dist_from_center
+				best_target_angle = x_center - image_center_x
+
+	return best_target_angle
+
+
+def get_target_angle(image_frame: np.ndarray) -> None:
+	"""
+	Performs inference on an image frame, determines the correct target based on state,
+	and updates the robot's target_angle.
+	"""
+	if image_frame is None:
+		print("Error: Received an empty image frame.")
+		robot.target_angle = None
+		return
+	results = MODEL(image_frame, verbose=False)
+	boxes = results[0].boxes
+
+	valid_classes = []
+	if robot.black_ball_cnt == 2 and robot.silver_ball_cnt == 0:
+		valid_classes = [ObjectClasses.FINAL_TARGET.value]
+	elif not robot.is_ball_caching:
+		if robot.black_ball_cnt < 2:
+			valid_classes = [ObjectClasses.BLACK_BALL.value]
 		else:
-				for box in boxes:
-						cls = int(box.cls[0])
-						if cls == 5:
-								x_center = float(box.xywh[0][0])
-								target_angle = x_center - cx
-								break
-
-		if target_angle is not None:
-				print(f"Detected target offset = {target_angle:.1f}")
+			valid_classes = [ObjectClasses.SILVER_BALL.value]
+	else:
+		if robot.black_ball_cnt < 2:
+			valid_classes = [ObjectClasses.RED_CACHE.value]
 		else:
-				print("No target detected.")
+			valid_classes = [ObjectClasses.GREEN_CACHE.value]
+
+	robot.target_angle = find_best_target(
+		boxes, valid_classes, results[0].orig_shape[1]
+	)
+
+	if robot.target_angle is not None:
+		print(
+			f"Targeting class(es) {valid_classes}. Best target offset = {robot.target_angle:.1f}"
+		)
+	else:
+		print(f"Targeting class(es) {valid_classes}. No target detected.")
 
 
-def set_angle_PID():
-		global L_motor_value, R_motor_value, target_angle
+def set_motor_speeds_from_angle():
+	"""Applies P-control to set motor values based on the target_angle."""
+	if robot.target_angle is None:
+		robot.L_motor_value = MOTOR_NEUTRAL
+		robot.R_motor_value = MOTOR_NEUTRAL
+		print("No target to align. Stopping motors.")
+		return
 
-		if target_angle is None:
-				print("No target to align.")
-				return
+	if abs(robot.target_angle) < THRESHOLD:
+		robot.L_motor_value = MOTOR_NEUTRAL
+		robot.R_motor_value = MOTOR_NEUTRAL
+	else:
+		turn_speed = KP * robot.target_angle
+		turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
 
-		if abs(target_angle) < threshold:
-				L_motor_value = 1500
-				R_motor_value = 1500
-		else:
-				turn_speed = kp * target_angle
-				turn_speed = max(min(turn_speed, 100), -100)
+		robot.L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
+		robot.R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
 
-				L_motor_value = int(1500 + turn_speed)
-				R_motor_value = int(1500 - turn_speed)
+
+def rescue_loop_func():
+	"""The main loop for a single cycle of rescue logic."""
+	robot.is_aligned = False
+	img = settings.Rescue_Camera_Pre_callback()
+	get_target_angle(img)
+	set_motor_speeds_from_angle()
+	if robot.target_angle is not None and abs(robot.target_angle) < THRESHOLD:
+		robot.is_aligned = True
+		print(
+			f"Robot is aligned! Motor Values: L={robot.L_motor_value}, R={robot.R_motor_value}"
+		)
+	else:
+		print(
+			f"Aligning... Motor Values: L={robot.L_motor_value}, R={robot.R_motor_value}"
+		)
