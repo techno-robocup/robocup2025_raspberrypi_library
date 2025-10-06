@@ -3,6 +3,7 @@ import settings
 import numpy as np
 from ultralytics import YOLO
 from enum import Enum
+import time
 
 
 class ObjectClasses(Enum):
@@ -15,6 +16,8 @@ class ObjectClasses(Enum):
 
 MODEL = YOLO("best.pt")
 KP = 0.1
+TP = 1.0
+CP = 1.0
 THRESHOLD = 10.0  # Increased slightly for more stability
 MOTOR_NEUTRAL = 1500
 MOTOR_MAX_TURN = 100
@@ -27,10 +30,11 @@ class RobotState:
 		self.is_ball_caching = False
 		self.is_task_done = False
 		self.is_aligned = False
-		self.L_motor_value = MOTOR_NEUTRAL
-		self.R_motor_value = MOTOR_NEUTRAL
 		self.target_angle = None
 
+Release_flag = False
+L_motor_value = MOTOR_NEUTRAL
+R_motor_value = MOTOR_NEUTRAL
 
 robot = RobotState()
 
@@ -67,7 +71,7 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 	boxes = results[0].boxes
 
 	valid_classes = []
-	if robot.black_ball_cnt == 2 and robot.silver_ball_cnt == 0:
+	if robot.is_task_done :
 		valid_classes = [ObjectClasses.FINAL_TARGET.value]
 	elif not robot.is_ball_caching:
 		if robot.black_ball_cnt < 2:
@@ -93,36 +97,69 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 
 
 def set_motor_speeds_from_angle():
+	global L_motor_value, R_motor_value
 	"""Applies P-control to set motor values based on the target_angle."""
 	if robot.target_angle is None:
-		robot.L_motor_value = MOTOR_NEUTRAL
-		robot.R_motor_value = MOTOR_NEUTRAL
+		L_motor_value = MOTOR_NEUTRAL
+		R_motor_value = MOTOR_NEUTRAL
 		print("No target to align. Stopping motors.")
 		return
 
 	if abs(robot.target_angle) < THRESHOLD:
-		robot.L_motor_value = MOTOR_NEUTRAL
-		robot.R_motor_value = MOTOR_NEUTRAL
+		L_motor_value = MOTOR_NEUTRAL
+		R_motor_value = MOTOR_NEUTRAL
 	else:
 		turn_speed = KP * robot.target_angle
 		turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
 
-		robot.L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
-		robot.R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
+		L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
+		R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
+
+def turn():
+	global L_motor_value, R_motor_value
+	L_motor_value = int(TP*(MOTOR_NEUTRAL - MOTOR_MAX_TURN))
+	R_motor_value = int(TP*(MOTOR_NEUTRAL + MOTOR_MAX_TURN))
+	time.sleep(1)
+	L_motor_value = MOTOR_NEUTRAL
+	R_motor_value = MOTOR_NEUTRAL
 
 
-def rescue_loop_func():
-	"""The main loop for a single cycle of rescue logic."""
+def catch_ball(u_sonicU):
+	global R_motor_value,L_motor_value
+	global Release_flag
+	Release_flag = False
+	R_motor_value = int(MOTOR_NEUTRAL + (u_sonicU * CP))
+	L_motor_value = int(MOTOR_NEUTRAL + (u_sonicU * CP))
+	if u_sonicU <= 1:
+		L_motor_value = MOTOR_NEUTRAL
+		R_motor_value = MOTOR_NEUTRAL
+		Release_flag = True
+		if robot.is_ball_caching:
+			robot.is_ball_caching = True
+		else:
+			if robot.black_ball_cnt < 2:
+				robot.black_ball_cnt += 1
+				robot.is_ball_caching = False
+			else:
+				robot.silver_ball_cnt += 1
+				robot.is_ball_caching = False
+				if robot.black_ball_cnt == 2 and robot.silver_ball_cnt == 1:
+					robot.is_task_done = True
+
+def rescue_loop_func(u_sonicL, u_sonicU, u_sonicR):
+	global L_motor_value, R_motor_value
+
 	robot.is_aligned = False
 	img = settings.Rescue_Camera_Pre_callback()
 	get_target_angle(img)
+
+	if robot.target_angle is None:
+		turn()
 	set_motor_speeds_from_angle()
+
 	if robot.target_angle is not None and abs(robot.target_angle) < THRESHOLD:
 		robot.is_aligned = True
-		print(
-			f"Robot is aligned! Motor Values: L={robot.L_motor_value}, R={robot.R_motor_value}"
-		)
+		catch_ball(u_sonicU)
+		print(f"Robot is aligned! Motor Values: L={L_motor_value}, R={R_motor_value}")
 	else:
-		print(
-			f"Aligning... Motor Values: L={robot.L_motor_value}, R={robot.R_motor_value}"
-		)
+		print(f"Aligning... Motor Values: L={L_motor_value}, R={R_motor_value}")
