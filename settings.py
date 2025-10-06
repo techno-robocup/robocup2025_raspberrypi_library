@@ -153,6 +153,10 @@ def detect_silver_marks(orig_image: np.ndarray) -> None:
   # Find contours
   contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+  img = cv2.imread("silver_line.png")
+  h, w, _ = img.shape
+  mid_y = h // 2
+
   for cnt in contours:
     if cv2.contourArea(cnt) > 100:  # skip small noise
       M = cv2.moments(cnt)
@@ -206,9 +210,6 @@ def detect_silver_marks(orig_image: np.ndarray) -> None:
   #    if DEBUG_MODE:
   #      _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
 
-  img = cv2.imread("silver_line.png")
-  h, w, _ = img.shape
-  mid_y = h // 2   # middle of the picture (height)
 
 def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
                                    center_y: int, w: int, h: int) -> np.ndarray:
