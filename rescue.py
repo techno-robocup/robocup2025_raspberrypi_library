@@ -22,7 +22,7 @@ CP = 1.0
 THRESHOLD = 10.0  # Increased slightly for more stability
 MOTOR_NEUTRAL = 1500
 MOTOR_MAX_TURN = 100
-
+turning = False
 
 class RobotState:
 	def __init__(self):
@@ -72,7 +72,7 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 	boxes = results[0].boxes
 
 	valid_classes = []
-	if robot.is_task_done :
+	if robot.is_task_done:
 		valid_classes = [ObjectClasses.FINAL_TARGET.value]
 	elif not robot.is_ball_caching:
 		if robot.black_ball_cnt < 2:
@@ -98,8 +98,8 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 
 
 def set_motor_speeds_from_angle():
-	global L_motor_value, R_motor_value
 	"""Applies P-control to set motor values based on the target_angle."""
+	global L_motor_value, R_motor_value
 	if robot.target_angle is None:
 		L_motor_value = MOTOR_NEUTRAL
 		R_motor_value = MOTOR_NEUTRAL
@@ -118,15 +118,19 @@ def set_motor_speeds_from_angle():
 
 def turn_threaded(duration=1):
 	global L_motor_value, R_motor_value
+	global turning
+	turning = True
 	L_motor_value = int(TP*(MOTOR_NEUTRAL - MOTOR_MAX_TURN))
 	R_motor_value = int(TP*(MOTOR_NEUTRAL + MOTOR_MAX_TURN))
 	time.sleep(duration)
 	L_motor_value = MOTOR_NEUTRAL
 	R_motor_value = MOTOR_NEUTRAL
+	turning = False
 
 def turn():
-	t = threading.Thread(target=turn_threaded, args=(1,))
-	t.start()
+	if not turning:
+		t = threading.Thread(target=turn_threaded, args=(1,))
+		t.start()
 
 def catch_ball(u_sonicU):
 	global R_motor_value,L_motor_value
@@ -138,7 +142,7 @@ def catch_ball(u_sonicU):
 		L_motor_value = MOTOR_NEUTRAL
 		R_motor_value = MOTOR_NEUTRAL
 		Release_flag = True
-		if robot.is_ball_caching:
+		if not robot.is_ball_caching:
 			robot.is_ball_caching = True
 		else:
 			if robot.black_ball_cnt < 2:
@@ -154,7 +158,7 @@ def rescue_loop_func(u_sonicL, u_sonicU, u_sonicR):
 	global L_motor_value, R_motor_value
 
 	robot.is_aligned = False
-	img = settings.Rescue_Camera_Pre_callback()
+	img = modules.settings.Rescue_Camera_Pre_callback()
 	get_target_angle(img)
 
 	if robot.target_angle is None:
