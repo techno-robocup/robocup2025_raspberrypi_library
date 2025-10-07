@@ -1,5 +1,5 @@
 # import cv2
-import settings
+import modules.settings
 import numpy as np
 from ultralytics import YOLO
 from enum import Enum
