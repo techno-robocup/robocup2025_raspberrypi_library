@@ -9,10 +9,10 @@ import threading
 
 class ObjectClasses(Enum):
 	BLACK_BALL = 0
-	RED_CACHE = 1
+	FINAL_TARGET = 1
 	GREEN_CACHE = 2
+	RED_CACHE = 3
 	SILVER_BALL = 4
-	FINAL_TARGET = 5
 
 
 MODEL = YOLO("best.pt")
