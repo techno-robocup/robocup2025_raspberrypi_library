@@ -22,6 +22,7 @@ CP = 1.0
 THRESHOLD = 10.0  # Increased slightly for more stability
 MOTOR_NEUTRAL = 1500
 MOTOR_MAX_TURN = 100
+BALL_DISTANCE = 4
 turning = False
 
 class RobotState:
@@ -138,7 +139,7 @@ def catch_ball(u_sonicU):
 	Release_flag = False
 	R_motor_value = int(MOTOR_NEUTRAL + (u_sonicU * CP))
 	L_motor_value = int(MOTOR_NEUTRAL + (u_sonicU * CP))
-	if u_sonicU <= 1:
+	if u_sonicU <= 4:
 		L_motor_value = MOTOR_NEUTRAL
 		R_motor_value = MOTOR_NEUTRAL
 		Release_flag = True
