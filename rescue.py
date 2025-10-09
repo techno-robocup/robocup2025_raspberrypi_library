@@ -4,13 +4,16 @@ from ultralytics import YOLO
 from enum import Enum
 import time
 import threading
+import modules.log
+
+logger = modules.log.get_logger()
 
 
 class ObjectClasses(Enum):
 	BLACK_BALL = 0
 	FINAL_TARGET = 1
-	GREEN_CACHE = 2
-	RED_CACHE = 3
+	GREEN_CAGE = 2
+	RED_CAGE = 3
 	SILVER_BALL = 4
 
 
@@ -58,7 +61,7 @@ def find_best_target(boxes, valid_classes, image_width):
 			if dist_from_center < min_dist_from_center:
 				min_dist_from_center = dist_from_center
 				best_target_angle = x_center - image_center_x
-
+				logger.debug(f"size:{area}")
 				if robot.is_ball_caching and area > RESCUE_CAGE_SIZE:
 					Release_flag = True
 				elif not robot.is_ball_caching and area > BALL_CATCH_SIZE:
@@ -76,17 +79,22 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 
 	valid_classes = []
 	if robot.is_task_done:
+		logger.debug("Find:Exit")
 		valid_classes = [ObjectClasses.FINAL_TARGET.value]
 	elif not robot.is_ball_caching:
 		if robot.black_ball_cnt < 2:
+			logger.debug("Find:Black")
 			valid_classes = [ObjectClasses.BLACK_BALL.value]
 		else:
+			logger.debug("Find:Silver")
 			valid_classes = [ObjectClasses.SILVER_BALL.value]
 	else:
 		if robot.black_ball_cnt < 2:
-			valid_classes = [ObjectClasses.RED_CACHE.value]
+			logger.debug("Find:RED")
+			valid_classes = [ObjectClasses.RED_CAGE.value]
 		else:
-			valid_classes = [ObjectClasses.GREEN_CACHE.value]
+			logger.debug("Find:GREEN")
+			valid_classes = [ObjectClasses.GREEN_CAGE.value]
 
 	robot.target_angle = find_best_target(
 		boxes, valid_classes, results[0].orig_shape[1]
