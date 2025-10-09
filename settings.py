@@ -21,7 +21,6 @@ MIN_GREEN_AREA = 200
 MIN_RED_AREA = 200
 MIN_SILVER_AREA = 200
 MIN_BLACK_LINE_AREA = 100
-
 # Threading locks
 linetracecam_threadlock = threading.Lock()
 LASTBLACKLINE_LOCK = threading.Lock()
@@ -143,33 +142,33 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
       _draw_red_mark_debug(orig_image, x, y, w, h, center_x, center_y)
 
 
-def detect_silver_marks(orig_image: np.ndarray) -> None:
-    # Convert to HSV (silver ≈ low saturation + high value)
-  hsv = cv2.cvtColor(orig_img, cv2.COLOR_BGR2HSV)
-  lower = np.array([0, 0, 180])
-  upper = np.array([180, 50, 255])
-  mask = cv2.inRange(hsv, lower, upper)
+#def detect_silver_marks(orig_image: np.ndarray) -> None:
+#    # Convert to HSV (silver ≈ low saturation + high value)
+#  hsv = cv2.cvtColor(orig_img, cv2.COLOR_BGR2HSV)
+#  lower = np.array([0, 0, 180])
+#  upper = np.array([180, 50, 255])
+#  mask = cv2.inRange(hsv, lower, upper)
 
-  # Find contours
-  contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+#  # Find contours
+#  contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-  img = cv2.imread("silver_line.png")
-  h, w, _ = img.shape
-  mid_y = h // 2
+#  img = cv2.imread("silver_line.png")
+#  h, w, _ = img.shape
+#  mid_y = h // 2
 
-  for cnt in contours:
-    if cv2.contourArea(cnt) > 100:  # skip small noise
-      M = cv2.moments(cnt)
-      if M["m00"] != 0:
-        cx = int(M["m10"] / M["m00"])
-        cy = int(M["m01"] / M["m00"])
+#  for cnt in contours:
+#    if cv2.contourArea(cnt) > 100:  # skip small noise
+#      M = cv2.moments(cnt)
+#      if M["m00"] != 0:
+#        cx = int(M["m10"] / M["m00"])
+#        cy = int(M["m01"] / M["m00"])
         
-        # Draw center on image
-        cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
+#        # Draw center on image
+#        cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
         
-        # Check position vs. middle
-        if cy > mid_y:   # center is lower half
-          is_rescue_area = True
+#        # Check position vs. middle
+#        if cy > mid_y:   # center is lower half
+#          is_rescue_area = True
 
   #"""Detect silver marks and set rescue area flag."""
   #global silver_marks, is_rescue_area
