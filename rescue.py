@@ -7,6 +7,7 @@ import modules.log
 import cv2
 
 logger = modules.log.get_logger()
+lock = threading.Lock()
 
 
 class ObjectClasses(Enum):
@@ -108,32 +109,35 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 
 def set_motor_speeds_from_angle():
 	global L_motor_value, R_motor_value
-	if robot.target_angle is None:
-		L_motor_value = MOTOR_NEUTRAL
-		R_motor_value = MOTOR_NEUTRAL
-		print("No target to align. Stopping motors.")
-		return
+	with lock:
+		if robot.target_angle is None:
+			L_motor_value = MOTOR_NEUTRAL
+			R_motor_value = MOTOR_NEUTRAL
+			print("No target to align. Stopping motors.")
+			return
 
-	if abs(robot.target_angle) < THRESHOLD:
-		L_motor_value = MOTOR_NEUTRAL
-		R_motor_value = MOTOR_NEUTRAL
-	else:
-		turn_speed = KP * robot.target_angle
-		turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
+		if abs(robot.target_angle) < THRESHOLD:
+			L_motor_value = MOTOR_NEUTRAL
+			R_motor_value = MOTOR_NEUTRAL
+		else:
+			turn_speed = KP * robot.target_angle
+			turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
 
-		L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
-		R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
+			L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
+			R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
+
 
 
 def turn_threaded(duration=1):
 	global L_motor_value, R_motor_value, turning
-	turning = True
-	L_motor_value = int(TP * (MOTOR_NEUTRAL - MOTOR_MAX_TURN))
-	R_motor_value = int(TP * (MOTOR_NEUTRAL + MOTOR_MAX_TURN))
-	time.sleep(duration)
-	L_motor_value = MOTOR_NEUTRAL
-	R_motor_value = MOTOR_NEUTRAL
-	turning = False
+	with lock:
+		turning = True
+		L_motor_value = int(TP * (MOTOR_NEUTRAL - MOTOR_MAX_TURN))
+		R_motor_value = int(TP * (MOTOR_NEUTRAL + MOTOR_MAX_TURN))
+		time.sleep(duration)
+		L_motor_value = MOTOR_NEUTRAL
+		R_motor_value = MOTOR_NEUTRAL
+		turning = False
 
 
 def turn():
