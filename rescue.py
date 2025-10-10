@@ -11,7 +11,7 @@ logger = modules.log.get_logger()
 
 class ObjectClasses(Enum):
 	BLACK_BALL = 0
-	FINAL_TARGET = 1
+	EXIT = 1
 	GREEN_CAGE = 2
 	RED_CAGE = 3
 	SILVER_BALL = 4
@@ -80,21 +80,22 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 	valid_classes = []
 	if robot.is_task_done:
 		logger.debug("Find:Exit")
-		valid_classes = [ObjectClasses.FINAL_TARGET.value]
-	elif not robot.is_ball_caching:
-		if robot.black_ball_cnt < 2:
-			logger.debug("Find:Black")
-			valid_classes = [ObjectClasses.BLACK_BALL.value]
-		else:
-			logger.debug("Find:Silver")
-			valid_classes = [ObjectClasses.SILVER_BALL.value]
+		valid_classes = [ObjectClasses.EXIT.value]
 	else:
-		if robot.black_ball_cnt < 2:
-			logger.debug("Find:RED")
-			valid_classes = [ObjectClasses.RED_CAGE.value]
+		if not robot.is_ball_caching:
+			if robot.black_ball_cnt < 2:
+				logger.debug("Find:Black")
+				valid_classes = [ObjectClasses.BLACK_BALL.value]
+			else:
+				logger.debug("Find:Silver")
+				valid_classes = [ObjectClasses.SILVER_BALL.value]
 		else:
-			logger.debug("Find:GREEN")
-			valid_classes = [ObjectClasses.GREEN_CAGE.value]
+			if robot.black_ball_cnt < 2:
+				logger.debug("Find:RED")
+				valid_classes = [ObjectClasses.RED_CAGE.value]
+			else:
+				logger.debug("Find:GREEN")
+				valid_classes = [ObjectClasses.GREEN_CAGE.value]
 
 	robot.target_angle = find_best_target(
 		boxes, valid_classes, results[0].orig_shape[1]
