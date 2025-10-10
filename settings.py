@@ -565,11 +565,6 @@ def Rescue_Camera_Pre_callback(request):
     except KeyboardInterrupt:
         print("[INFO] Interrupted by user")
 
-    finally:
-        if serial_port.is_open:
-            serial_port.close()
-            print("[DEBUG] Serial port closed safely")
-
 
 # Camera configuration constants
 RESCUE_CAMERA_PORT = 0
