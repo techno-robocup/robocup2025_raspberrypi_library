@@ -170,7 +170,6 @@ def rescue_loop_func():
 	logger.debug("call rescue_loop_func")
 	robot.is_aligned = False
 	#img = modules.settings.Rescue_Camera_Pre_callback()
-	results = MODEL(img, verbose=False)
 	boxes = results[0].boxes
 
 	get_target_angle(img)
