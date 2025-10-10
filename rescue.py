@@ -169,7 +169,7 @@ def catch_ball(area,f_u_sonic):
 					if robot.black_ball_cnt == 1 and robot.silver_ball_cnt == 2:
 						robot.is_task_done = True
 	else:
-		if f_u_sonic <= 5#TODO:Fix value
+		if f_u_sonic <= 5:#TODO:Fix value
 			Release_flag = True
 			L_motor_value = MOTOR_NEUTRAL
 			R_motor_value = MOTOR_NEUTRAL
