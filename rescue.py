@@ -17,7 +17,6 @@ class ObjectClasses(Enum):
 	SILVER_BALL = 4
 
 
-MODEL = YOLO("best.pt")
 KP = 0.1
 TP = 1.0
 CP = 1.0

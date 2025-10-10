@@ -45,6 +45,8 @@ silver_marks: List[Tuple[int, int, int, int]] = []
 stop_requested = False
 is_rescue_area = False
 
+MODEL = YOLO("best.pt")
+
 
 def detect_green_marks(orig_image: np.ndarray,
                        blackline_image: np.ndarray) -> None:
