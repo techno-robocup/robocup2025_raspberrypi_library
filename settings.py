@@ -7,6 +7,7 @@ import threading
 import modules.log
 import modules.rescue
 from typing import List, Tuple, Optional
+from ultralytics import YOLO
 
 logger = modules.log.get_logger()
 
@@ -47,7 +48,7 @@ is_rescue_area = False
 
 # Defining vars to be used by YOLO
 MODEL = YOLO("best.pt")
-yolo_results = []
+yolo_results = None
 
 
 def detect_green_marks(orig_image: np.ndarray,

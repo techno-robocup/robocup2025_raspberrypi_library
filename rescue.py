@@ -5,6 +5,7 @@ from enum import Enum
 import time
 import threading
 import modules.log
+import cv2
 
 logger = modules.log.get_logger()
 
@@ -169,8 +170,18 @@ def rescue_loop_func():
 
 	logger.debug("call rescue_loop_func")
 	robot.is_aligned = False
-	#img = modules.settings.Rescue_Camera_Pre_callback()
+
+	if modules.settings.yolo_results is None:
+		logger.debug("No YOLO results available")
+		return
+
+	results = modules.settings.yolo_results
 	boxes = results[0].boxes
+	img = results[0].orig_img
+
+	if modules.settings.DEBUG_MODE:
+		annotated = results[0].plot()
+		cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
 
 	get_target_angle(img)
 	if robot.target_angle is None:
