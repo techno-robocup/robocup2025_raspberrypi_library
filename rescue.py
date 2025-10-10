@@ -164,11 +164,11 @@ def catch_ball(area):
 					robot.is_task_done = True
 
 
-def rescue_loop_func():
+def rescue_loop_func(img):
 	global L_motor_value, R_motor_value
 
 	robot.is_aligned = False
-	img = modules.settings.Rescue_Camera_Pre_callback()
+	#img = modules.settings.Rescue_Camera_Pre_callback()
 	results = MODEL(img, verbose=False)
 	boxes = results[0].boxes
 
@@ -188,3 +188,7 @@ def rescue_loop_func():
 		print(f"Robot is aligned! Motor Values: L={L_motor_value}, R={R_motor_value}")
 	else:
 		print(f"Aligning... Motor Values: L={L_motor_value}, R={R_motor_value}")
+
+# Cage -> u_sonic
+# First, get angles of all objects
+# Use mutex gard

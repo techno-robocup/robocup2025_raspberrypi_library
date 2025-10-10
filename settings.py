@@ -5,6 +5,7 @@ import time
 import numpy as np
 import threading
 import modules.log
+import modules.rescue
 from typing import List, Tuple, Optional
 
 logger = modules.log.get_logger()
@@ -544,10 +545,14 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 def Rescue_Camera_Pre_callback(request):
   """Rescue camera callback function."""
+  rescue_current_time = time.time()
   with MappedArray(request, "lores") as m:
     image = m.array
     fixed_image = cv2.rotate(image, cv2.ROTATE_180)
     cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
+    modules.rescue.rescue_loop_func(fixed_image)
+
+    
     print("Rescue_Camera_Pre_callback")
 
 
