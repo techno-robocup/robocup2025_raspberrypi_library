@@ -164,7 +164,7 @@ def catch_ball(area):
 					robot.is_task_done = True
 
 
-def rescue_loop_func(img):
+def rescue_loop_func():
 	global L_motor_value, R_motor_value
 
 	logger.debug("call rescue_loop_func")

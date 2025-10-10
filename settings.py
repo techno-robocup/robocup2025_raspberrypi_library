@@ -45,7 +45,9 @@ silver_marks: List[Tuple[int, int, int, int]] = []
 stop_requested = False
 is_rescue_area = False
 
+# Defining vars to be used by YOLO
 MODEL = YOLO("best.pt")
+yolo_results = []
 
 
 def detect_green_marks(orig_image: np.ndarray,
@@ -547,15 +549,17 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 def Rescue_Camera_Pre_callback(request):
     """Rescue camera callback function."""
+    global yolo_results
     try:
         with MappedArray(request, "lores") as m:
-            logger.debug("call in main loop")
+            logger.debug("Rescue_Camera_Pre_callback")
 
             image = m.array
             fixed_image = cv2.rotate(image, cv2.ROTATE_180)
             cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
 
-            modules.rescue.rescue_loop_func(fixed_image)
+            yolo_results = MODEL(fixed_image)
+            modules.rescue.rescue_loop_func()
 
     except KeyboardInterrupt:
         print("[INFO] Interrupted by user")
