@@ -549,9 +549,6 @@ def Rescue_Camera_Pre_callback(request):
         with MappedArray(request, "lores") as m:
             logger.debug("call in main loop")
 
-            if not is_rescueCam_start:
-                Rescue_Camera.start_cam()
-
             image = m.array
             fixed_image = cv2.rotate(image, cv2.ROTATE_180)
             cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
