@@ -545,7 +545,7 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 def Rescue_Camera_Pre_callback(request):
   """Rescue camera callback function."""
-  rescue_current_time = time.time()
+  #rescue_current_time = time.time()
   with MappedArray(request, "lores") as m:
     image = m.array
     fixed_image = cv2.rotate(image, cv2.ROTATE_180)

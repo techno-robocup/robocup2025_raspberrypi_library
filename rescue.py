@@ -52,8 +52,8 @@ def find_best_target(boxes, valid_classes, image_width):
 	image_center_x = image_width / 2
 
 	for box in boxes:
-		cls = int(box.cls[0])
-		if cls in valid_classes:
+		i_class = int(box.cls[0])
+		if i_class in valid_classes:
 			x_center, y_center, w, h = map(float, box.xywh[0])
 			dist_from_center = abs(x_center - image_center_x)
 			area = w * h
