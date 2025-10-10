@@ -1,6 +1,5 @@
 import modules.settings
 import numpy as np
-from ultralytics import YOLO
 from enum import Enum
 import time
 import threading
