@@ -544,16 +544,27 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 
 def Rescue_Camera_Pre_callback(request):
-  """Rescue camera callback function."""
-  #rescue_current_time = time.time()
-  with MappedArray(request, "lores") as m:
-    image = m.array
-    fixed_image = cv2.rotate(image, cv2.ROTATE_180)
-    cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
-    modules.rescue.rescue_loop_func(fixed_image)
+    """Rescue camera callback function."""
+    try:
+        with MappedArray(request, "lores") as m:
+            logger.debug("call in main loop")
 
-    
-    print("Rescue_Camera_Pre_callback")
+            if not is_rescueCam_start:
+                Rescue_Camera.start_cam()
+
+            image = m.array
+            fixed_image = cv2.rotate(image, cv2.ROTATE_180)
+            cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
+
+            modules.rescue.rescue_loop_func(fixed_image)
+
+    except KeyboardInterrupt:
+        print("[INFO] Interrupted by user")
+
+    finally:
+        if serial_port.is_open:
+            serial_port.close()
+            print("[DEBUG] Serial port closed safely")
 
 
 # Camera configuration constants
