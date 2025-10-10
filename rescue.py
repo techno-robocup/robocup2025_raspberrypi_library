@@ -44,6 +44,7 @@ R_motor_value = MOTOR_NEUTRAL
 robot = RobotState()
 
 
+
 def find_best_target(boxes, valid_classes, image_width):
 	"""Finds all valid targets and returns the one closest to the center."""
 	global Release_flag
@@ -62,7 +63,7 @@ def find_best_target(boxes, valid_classes, image_width):
 				min_dist_from_center = dist_from_center
 				best_target_angle = x_center - image_center_x
 				logger.debug(f"size:{area}")
-				if robot.is_ball_caching and area > RESCUE_CAGE_SIZE:
+				if robot.is_ball_caching and area > RESCUE_CAGE_SIZE:# TODO: Use u_sonic
 					Release_flag = True
 				elif not robot.is_ball_caching and area > BALL_CATCH_SIZE:
 					Release_flag = True
@@ -74,7 +75,7 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 		print("Error: Received an empty image frame.")
 		robot.target_angle = None
 		return
-	results = MODEL(image_frame, verbose=False)
+	results = modules.settings.MODEL(image_frame, verbose=False)
 	boxes = results[0].boxes
 
 	valid_classes = []
@@ -83,19 +84,19 @@ def get_target_angle(image_frame: np.ndarray) -> None:
 		valid_classes = [ObjectClasses.EXIT.value]
 	else:
 		if not robot.is_ball_caching:
-			if robot.black_ball_cnt < 2:
-				logger.debug("Find:Black")
+			if robot.silver_ball_cnt < 2:
+				logger.debug("Find:Silver")
 				valid_classes = [ObjectClasses.BLACK_BALL.value]
 			else:
-				logger.debug("Find:Silver")
+				logger.debug("Find:Black")
 				valid_classes = [ObjectClasses.SILVER_BALL.value]
 		else:
-			if robot.black_ball_cnt < 2:
-				logger.debug("Find:RED")
-				valid_classes = [ObjectClasses.RED_CAGE.value]
-			else:
+			if robot.silver_ball_cnt < 2:
 				logger.debug("Find:GREEN")
 				valid_classes = [ObjectClasses.GREEN_CAGE.value]
+			else:
+				logger.debug("Find:RED")
+				valid_classes = [ObjectClasses.RED_CAGE.value]
 
 	robot.target_angle = find_best_target(
 		boxes, valid_classes, results[0].orig_shape[1]
@@ -146,29 +147,36 @@ def turn():
 		t.start()
 
 
-def catch_ball(area):
+def catch_ball(area,f_u_sonic):
 	"""Camera-based distance estimation: use bounding box area."""
 	global R_motor_value, L_motor_value, Release_flag
 	Release_flag = False
 
-	if area > BALL_CATCH_SIZE:
-		L_motor_value = MOTOR_NEUTRAL
-		R_motor_value = MOTOR_NEUTRAL
-		Release_flag = True
-		if not robot.is_ball_caching:
-			robot.is_ball_caching = True
-		else:
-			if robot.black_ball_cnt < 2:
-				robot.black_ball_cnt += 1
-				robot.is_ball_caching = False
+	if not robot.is_ball_caching:
+		if area > BALL_CATCH_SIZE:
+			L_motor_value = MOTOR_NEUTRAL
+			R_motor_value = MOTOR_NEUTRAL
+			Release_flag = True
+			if not robot.is_ball_caching:
+				robot.is_ball_caching = True
 			else:
-				robot.silver_ball_cnt += 1
-				robot.is_ball_caching = False
-				if robot.black_ball_cnt == 2 and robot.silver_ball_cnt == 1:
-					robot.is_task_done = True
+				if robot.silver_ball_cnt < 2:
+					robot.silver_ball_cnt += 1
+					robot.is_ball_caching = False
+				else:
+					robot.black_ball_cnt += 1
+					robot.is_ball_caching = False
+					if robot.black_ball_cnt == 1 and robot.silver_ball_cnt == 2:
+						robot.is_task_done = True
+	else:
+		if f_u_sonic <= 5#TODO:Fix value
+			Release_flag = True
+			L_motor_value = MOTOR_NEUTRAL
+			R_motor_value = MOTOR_NEUTRAL
+			robot.is_ball_caching = False
 
 
-def rescue_loop_func():
+def rescue_loop_func(f_u_Sonic):
 	global L_motor_value, R_motor_value
 
 	logger.debug("call rescue_loop_func")
@@ -193,19 +201,19 @@ def rescue_loop_func():
 		valid_classes = [ObjectClasses.EXIT.value]
 	else:
 		if not robot.is_ball_caching:
-			if robot.black_ball_cnt < 2:
-				logger.debug("Find:Black")
-				valid_classes = [ObjectClasses.BLACK_BALL.value]
-			else:
+			if robot.silver_ball_cnt < 2:
 				logger.debug("Find:Silver")
 				valid_classes = [ObjectClasses.SILVER_BALL.value]
-		else:
-			if robot.black_ball_cnt < 2:
-				logger.debug("Find:RED")
-				valid_classes = [ObjectClasses.RED_CAGE.value]
 			else:
+				logger.debug("Find:Black")
+				valid_classes = [ObjectClasses.BLACK_BALL.value]
+		else:
+			if robot.silver_ball_cnt < 2:
 				logger.debug("Find:GREEN")
 				valid_classes = [ObjectClasses.GREEN_CAGE.value]
+			else:
+				logger.debug("Find:RED")
+				valid_classes = [ObjectClasses.RED_CAGE.value]
 
 	# Find best target from detections
 	robot.target_angle = find_best_target(boxes, valid_classes, image_width)
@@ -236,4 +244,3 @@ def rescue_loop_func():
 
 # Cage -> u_sonic
 # First, get angles of all objects
-# Use mutex gard
