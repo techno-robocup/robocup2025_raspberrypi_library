@@ -168,6 +168,7 @@ def catch_ball(area):
 def rescue_loop_func(img):
 	global L_motor_value, R_motor_value
 
+	logger.debug("call rescue_loop_func")
 	robot.is_aligned = False
 	#img = modules.settings.Rescue_Camera_Pre_callback()
 	results = MODEL(img, verbose=False)
