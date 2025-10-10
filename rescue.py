@@ -176,23 +176,54 @@ def rescue_loop_func():
 
 	results = modules.settings.yolo_results
 	boxes = results[0].boxes
-	img = results[0].orig_img
+	image_width = results[0].orig_shape[1]
 
 	if modules.settings.DEBUG_MODE:
 		annotated = results[0].plot()
 		cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
 
-	get_target_angle(img)
+	# Determine valid target classes based on robot state
+	valid_classes = []
+	if robot.is_task_done:
+		logger.debug("Find:Exit")
+		valid_classes = [ObjectClasses.EXIT.value]
+	else:
+		if not robot.is_ball_caching:
+			if robot.black_ball_cnt < 2:
+				logger.debug("Find:Black")
+				valid_classes = [ObjectClasses.BLACK_BALL.value]
+			else:
+				logger.debug("Find:Silver")
+				valid_classes = [ObjectClasses.SILVER_BALL.value]
+		else:
+			if robot.black_ball_cnt < 2:
+				logger.debug("Find:RED")
+				valid_classes = [ObjectClasses.RED_CAGE.value]
+			else:
+				logger.debug("Find:GREEN")
+				valid_classes = [ObjectClasses.GREEN_CAGE.value]
+
+	# Find best target from detections
+	robot.target_angle = find_best_target(boxes, valid_classes, image_width)
+
+	if robot.target_angle is not None:
+		print(f"Targeting class(es) {valid_classes}. Best target offset = {robot.target_angle:.1f}")
+	else:
+		print(f"Targeting class(es) {valid_classes}. No target detected.")
+
+	# Control logic
 	if robot.target_angle is None:
 		turn()
 	set_motor_speeds_from_angle()
 
+	# Check for ball catching
 	if boxes:
 		for box in boxes:
 			w, h = map(float, box.xywh[0][2:])
 			area = w * h
 			catch_ball(area)
 
+	# Alignment status
 	if robot.target_angle is not None and abs(robot.target_angle) < THRESHOLD:
 		robot.is_aligned = True
 		print(f"Robot is aligned! Motor Values: L={L_motor_value}, R={R_motor_value}")
