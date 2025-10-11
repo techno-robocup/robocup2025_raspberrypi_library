@@ -1,5 +1,4 @@
 import modules.settings
-import numpy as np
 from enum import Enum
 import time
 import threading
