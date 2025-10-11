@@ -96,7 +96,7 @@ def find_best_target(results,image_width):# TODO: turn 180 degrees
 	else:
 		logger.debug(f"Targeting class(es) {Valid_Classes}. No target detected.")
 	best_target_position = None
-	#min_dist_from_center = float("inf")
+	min_dist_from_center = float("inf")
 	image_center_x = image_width / 2
 
 	for box in boxes:
@@ -111,12 +111,7 @@ def find_best_target(results,image_width):# TODO: turn 180 degrees
 				best_target_position = dist_from_center
 				best_target_area = area
 
-
-			logger.debug(f"size:{area}")
-				#if robot.is_ball_caching and F_U_SONIC <= 0.5:# TODO: Use u_sonic in run_motor
-				#	release_ball()
-				#elif not robot.is_ball_caching and area > BALL_CATCH_SIZE:
-				#	catch_ball()
+	logger.debug(f"dist: {best_target_area}size:{best_target_area}")
 	robot.target_position = best_target_position
 	robot.target_size = best_target_area
 	if best_target_position is not None:
@@ -139,8 +134,12 @@ def run_to_target():
 		return
 
 
+def set_motor_speeds():
+
+
 #def set_motor_speeds_from_position():
-#	global L_motor_value, R_motor_value
+#	global L_Motor_Value, R_Motor_Value
+
 #	with lock:
 #		if robot.target_position is None:
 #			L_motor_value = MOTOR_NEUTRAL
@@ -161,7 +160,8 @@ def run_to_target():
 
 
 #def turn_threaded(duration=1):
-#	global L_motor_value, R_motor_value, turning
+#	global L_Motor_Value, R_Motor_Value
+#, turning
 #	with lock:
 #		turning = True
 #		L_motor_value = int(TP * (MOTOR_NEUTRAL - MOTOR_MAX_TURN))
@@ -172,43 +172,8 @@ def run_to_target():
 #		turning = False
 
 
-#def turn():
-#	if not turning:
-#		t = threading.Thread(target=turn_threaded, args=(1,))
-#		t.start()
-
-
-#def catch_ball(area,f_u_sonic):
-#	"""Camera-based distance estimation: use bounding box area."""
-#	global R_motor_value, L_motor_value, Release_flag
-#	Release_flag = False
-
-#	if not robot.is_ball_caching:
-#		if area > BALL_CATCH_SIZE:
-#			L_motor_value = MOTOR_NEUTRAL
-#			R_motor_value = MOTOR_NEUTRAL
-#			Release_flag = True
-#			if not robot.is_ball_caching:
-#				robot.is_ball_caching = True
-#			else:
-#				if robot.silver_ball_cnt < 2:
-#					robot.silver_ball_cnt += 1
-#					robot.is_ball_caching = False
-#				else:
-#					robot.black_ball_cnt += 1
-#					robot.is_ball_caching = False
-#					if robot.black_ball_cnt == 1 and robot.silver_ball_cnt == 2:
-#						robot.is_task_done = True
-#	else:
-#		if f_u_sonic <= 5:#TODO:Fix value
-#			Release_flag = True
-#			L_motor_value = MOTOR_NEUTRAL
-#			R_motor_value = MOTOR_NEUTRAL
-#			robot.is_ball_caching = False
-
-
 def rescue_loop_func():
-	global L_motor_value, R_motor_value
+	global L_Motor_Value, R_Motor_Value
 
 	logger.debug("call rescue_loop_func")
 	#robot.is_aligned = False
@@ -218,10 +183,10 @@ def rescue_loop_func():
 		return
 
 	results = modules.settings.yolo_results
-	boxes = results[0].boxes
+	return_boxes = results[0].boxes
 	image_width = results[0].orig_shape[1]
 
-	if robot.silver_ball_cnt < 2 or robot.black_ball_cnt < 1:
+	if robot.silver_ball_cnt== 2 and robot.black_ball_cnt == 1:
 		logger.debug("Find:Exit")
 		Valid_Classes = [ObjectClasses.EXIT.value]
 	else:
@@ -245,14 +210,14 @@ def rescue_loop_func():
 		cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
 
 	# Find best target from detections
-	robot.target_position = find_best_target(results, image_width)# NOTE: Find target, return dist and area size
+	find_best_target(results, image_width)# NOTE: Find target, return dist and area size
 
 	if robot.target_position is not None:
 		logger.debug(f"Targeting class(es) {Valid_Classes}. Best target offset = {robot.target_position:.1f} , {robot.target_size}")# TODO: continue 180 degrees
 	else:
 		logger.debug(f"Targeting class(es) {Valid_Classes}. No target detected.")
 
-	if not(robot.is_ball_caching) and robot.target_size <= BALL_CATCH_SIZE:
+	if not robot.is_ball_caching and robot.target_size is not None and robot.target_size >= BALL_CATCH_SIZE:
 		catch_ball()
 	elif robot.is_ball_caching and F_U_SONIC < 1:
 		release_ball()
