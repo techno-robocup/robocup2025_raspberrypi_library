@@ -16,171 +16,202 @@ class ObjectClasses(Enum):
 	GREEN_CAGE = 2
 	RED_CAGE = 3
 	SILVER_BALL = 4
+Valid_Classes = []
 
-
-KP = 0.1
-TP = 1.0
-CP = 1.0
-THRESHOLD = 10.0
-MOTOR_NEUTRAL = 1500
-MOTOR_MAX_TURN = 100
 BALL_CATCH_SIZE = 1000
-RESCUE_CAGE_SIZE = 1200
-turning = False
+Turn_Speed = 1600
+First_Turn = False
 
 class RobotState:
 	def __init__(self):
 		self.silver_ball_cnt = 0
 		self.black_ball_cnt = 0
 		self.is_ball_caching = False
-		self.is_task_done = False
-		self.is_aligned = False
-		self.target_angle = None
+		self.target_position = None
+		self.target_size = None
 
-Release_flag = False
-L_motor_value = MOTOR_NEUTRAL
-R_motor_value = MOTOR_NEUTRAL
+L_Motor_Value = 1500
+R_Motor_Value = 1500
+Arm_Motor_Value = 1024
+Wire_Motor_Value = 0
+L_U_SONIC = 99
+F_U_SONIC = 99
+R_U_SONIC = 99
+
 
 robot = RobotState()
 
 
+def catch_ball():
+	global Arm_Motor_Value,Wire_Motor_Value
+	global L_Motor_Value,R_Motor_Value
+	Arm_Motor_Value = 3072
+	time.sleep(3)
+	L_Motor_Value = 1550
+	R_Motor_Value = L_Motor_Value
+	time.sleep(0.5)
+	L_Motor_Value = 1500
+	R_Motor_Value = L_Motor_Value
+	Wire_Motor_Value = 1
+	Arm_Motor_Value = 1024
+	robot.is_ball_caching = True
+	time.sleep(2)
+	return
 
-def find_best_target(boxes, valid_classes, image_width):
+def release_ball():
+	global Arm_Motor_Value,Wire_Motor_Value
+	global L_Motor_Value,R_Motor_Value
+	L_Motor_Value = 1550
+	R_Motor_Value = L_Motor_Value
+	Arm_Motor_Value = 3072
+	time.sleep(3)
+	Wire_Motor_Value = 0
+	Arm_Motor_Value = 1024
+	robot.is_ball_caching = False
+	if Valid_Classes == [ObjectClasses.GREEN_CAGE.value]:
+		robot.silver_ball_cnt += 1
+	else:
+		robot.black_ball_cnt += 1
+	time.sleep(2)
+	L_Motor_Value = 1400
+	R_Motor_Value = L_Motor_Value
+	time.sleep(1)
+	L_Motor_Value = 1500
+	R_Motor_Value = L_Motor_Value
+	return
+
+
+def find_best_target(results,image_width):# TODO: turn 180 degrees
 	"""Finds all valid targets and returns the one closest to the center."""
-	global Release_flag
-	best_target_angle = None
-	min_dist_from_center = float("inf")
+	global Valid_Classes
+	boxes = results[0].boxes
+	if not boxes:
+		logger.debug("No boxes detected in YOLO results.")
+		robot.target_position = None
+		robot.target_size = None
+		return None
+
+	if robot.target_position is not None:
+		logger.debug(f"Targeting class(es) {Valid_Classes}. Best target offset = {robot.target_position:.1f}")
+	else:
+		logger.debug(f"Targeting class(es) {Valid_Classes}. No target detected.")
+	best_target_position = None
+	#min_dist_from_center = float("inf")
 	image_center_x = image_width / 2
 
 	for box in boxes:
 		i_class = int(box.cls[0])
-		if i_class in valid_classes:
+		if i_class in Valid_Classes:
 			x_center, y_center, w, h = map(float, box.xywh[0])
-			dist_from_center = abs(x_center - image_center_x)
+			dist_from_center = x_center - image_center_x
 			area = w * h
 
-			if dist_from_center < min_dist_from_center:
-				min_dist_from_center = dist_from_center
-				best_target_angle = x_center - image_center_x
-				logger.debug(f"size:{area}")
-				if robot.is_ball_caching and area > RESCUE_CAGE_SIZE:# TODO: Use u_sonic
-					Release_flag = True
-				elif not robot.is_ball_caching and area > BALL_CATCH_SIZE:
-					Release_flag = True
-	return best_target_angle
+			if abs(dist_from_center) < min_dist_from_center:
+				min_dist_from_center = abs(dist_from_center)
+				best_target_position = dist_from_center
+				best_target_area = area
 
 
-def get_target_angle(image_frame: np.ndarray) -> None:
-	if image_frame is None:
-		print("Error: Received an empty image frame.")
-		robot.target_angle = None
+			logger.debug(f"size:{area}")
+				#if robot.is_ball_caching and F_U_SONIC <= 0.5:# TODO: Use u_sonic in run_motor
+				#	release_ball()
+				#elif not robot.is_ball_caching and area > BALL_CATCH_SIZE:
+				#	catch_ball()
+	robot.target_position = best_target_position
+	robot.target_size = best_target_area
+	if best_target_position is not None:
+		logger.debug(
+			f"Target found: offset={best_target_position:.1f}, area={best_target_area:.1f}, classes={Valid_Classes}"
+		)
+	else:
+		logger.debug(f"No valid target found for classes {Valid_Classes}.")
+
+def change_position():
+	global L_Motor_Value,R_Motor_Value
+	"""Turn 180 degrees"""
+	
+
+
+def run_to_target():
+	if robot.target_position is None:
+		return# TODO: Turn or change position
+	else:
 		return
-	results = modules.settings.MODEL(image_frame, verbose=False)
-	boxes = results[0].boxes
-
-	valid_classes = []
-	if robot.is_task_done:
-		logger.debug("Find:Exit")
-		valid_classes = [ObjectClasses.EXIT.value]
-	else:
-		if not robot.is_ball_caching:
-			if robot.silver_ball_cnt < 2:
-				logger.debug("Find:Silver")
-				valid_classes = [ObjectClasses.BLACK_BALL.value]
-			else:
-				logger.debug("Find:Black")
-				valid_classes = [ObjectClasses.SILVER_BALL.value]
-		else:
-			if robot.silver_ball_cnt < 2:
-				logger.debug("Find:GREEN")
-				valid_classes = [ObjectClasses.GREEN_CAGE.value]
-			else:
-				logger.debug("Find:RED")
-				valid_classes = [ObjectClasses.RED_CAGE.value]
-
-	robot.target_angle = find_best_target(
-		boxes, valid_classes, results[0].orig_shape[1]
-	)
-
-	if robot.target_angle is not None:
-		print(f"Targeting class(es) {valid_classes}. Best target offset = {robot.target_angle:.1f}")
-	else:
-		print(f"Targeting class(es) {valid_classes}. No target detected.")
 
 
-def set_motor_speeds_from_angle():
-	global L_motor_value, R_motor_value
-	with lock:
-		if robot.target_angle is None:
-			L_motor_value = MOTOR_NEUTRAL
-			R_motor_value = MOTOR_NEUTRAL
-			print("No target to align. Stopping motors.")
-			return
+#def set_motor_speeds_from_position():
+#	global L_motor_value, R_motor_value
+#	with lock:
+#		if robot.target_position is None:
+#			L_motor_value = MOTOR_NEUTRAL
+#			R_motor_value = MOTOR_NEUTRAL
+#			logger.debug("No target to align. Stopping motors.")
+#			return
 
-		if abs(robot.target_angle) < THRESHOLD:
-			L_motor_value = MOTOR_NEUTRAL
-			R_motor_value = MOTOR_NEUTRAL
-		else:
-			turn_speed = KP * robot.target_angle
-			turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
+#		if abs(robot.target_position) < THRESHOLD:
+#			L_motor_value = MOTOR_NEUTRAL
+#			R_motor_value = MOTOR_NEUTRAL
+#		else:
+#			turn_speed = KP * robot.target_position
+#			turn_speed = max(min(turn_speed, MOTOR_MAX_TURN), -MOTOR_MAX_TURN)
 
-			L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
-			R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
+#			L_motor_value = int(MOTOR_NEUTRAL + turn_speed)
+#			R_motor_value = int(MOTOR_NEUTRAL - turn_speed)
 
 
 
-def turn_threaded(duration=1):
-	global L_motor_value, R_motor_value, turning
-	with lock:
-		turning = True
-		L_motor_value = int(TP * (MOTOR_NEUTRAL - MOTOR_MAX_TURN))
-		R_motor_value = int(TP * (MOTOR_NEUTRAL + MOTOR_MAX_TURN))
-		time.sleep(duration)
-		L_motor_value = MOTOR_NEUTRAL
-		R_motor_value = MOTOR_NEUTRAL
-		turning = False
+#def turn_threaded(duration=1):
+#	global L_motor_value, R_motor_value, turning
+#	with lock:
+#		turning = True
+#		L_motor_value = int(TP * (MOTOR_NEUTRAL - MOTOR_MAX_TURN))
+#		R_motor_value = int(TP * (MOTOR_NEUTRAL + MOTOR_MAX_TURN))
+#		time.sleep(duration)
+#		L_motor_value = MOTOR_NEUTRAL
+#		R_motor_value = MOTOR_NEUTRAL
+#		turning = False
 
 
-def turn():
-	if not turning:
-		t = threading.Thread(target=turn_threaded, args=(1,))
-		t.start()
+#def turn():
+#	if not turning:
+#		t = threading.Thread(target=turn_threaded, args=(1,))
+#		t.start()
 
 
-def catch_ball(area,f_u_sonic):
-	"""Camera-based distance estimation: use bounding box area."""
-	global R_motor_value, L_motor_value, Release_flag
-	Release_flag = False
+#def catch_ball(area,f_u_sonic):
+#	"""Camera-based distance estimation: use bounding box area."""
+#	global R_motor_value, L_motor_value, Release_flag
+#	Release_flag = False
 
-	if not robot.is_ball_caching:
-		if area > BALL_CATCH_SIZE:
-			L_motor_value = MOTOR_NEUTRAL
-			R_motor_value = MOTOR_NEUTRAL
-			Release_flag = True
-			if not robot.is_ball_caching:
-				robot.is_ball_caching = True
-			else:
-				if robot.silver_ball_cnt < 2:
-					robot.silver_ball_cnt += 1
-					robot.is_ball_caching = False
-				else:
-					robot.black_ball_cnt += 1
-					robot.is_ball_caching = False
-					if robot.black_ball_cnt == 1 and robot.silver_ball_cnt == 2:
-						robot.is_task_done = True
-	else:
-		if f_u_sonic <= 5:#TODO:Fix value
-			Release_flag = True
-			L_motor_value = MOTOR_NEUTRAL
-			R_motor_value = MOTOR_NEUTRAL
-			robot.is_ball_caching = False
+#	if not robot.is_ball_caching:
+#		if area > BALL_CATCH_SIZE:
+#			L_motor_value = MOTOR_NEUTRAL
+#			R_motor_value = MOTOR_NEUTRAL
+#			Release_flag = True
+#			if not robot.is_ball_caching:
+#				robot.is_ball_caching = True
+#			else:
+#				if robot.silver_ball_cnt < 2:
+#					robot.silver_ball_cnt += 1
+#					robot.is_ball_caching = False
+#				else:
+#					robot.black_ball_cnt += 1
+#					robot.is_ball_caching = False
+#					if robot.black_ball_cnt == 1 and robot.silver_ball_cnt == 2:
+#						robot.is_task_done = True
+#	else:
+#		if f_u_sonic <= 5:#TODO:Fix value
+#			Release_flag = True
+#			L_motor_value = MOTOR_NEUTRAL
+#			R_motor_value = MOTOR_NEUTRAL
+#			robot.is_ball_caching = False
 
 
-def rescue_loop_func(f_u_Sonic):
+def rescue_loop_func():
 	global L_motor_value, R_motor_value
 
 	logger.debug("call rescue_loop_func")
-	robot.is_aligned = False
+	#robot.is_aligned = False
 
 	if modules.settings.yolo_results is None:
 		logger.debug("No YOLO results available")
@@ -190,57 +221,42 @@ def rescue_loop_func(f_u_Sonic):
 	boxes = results[0].boxes
 	image_width = results[0].orig_shape[1]
 
-	if modules.settings.DEBUG_MODE:
-		annotated = results[0].plot()
-		cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
-
-	# Determine valid target classes based on robot state
-	valid_classes = []
-	if robot.is_task_done:
+	if robot.silver_ball_cnt < 2 or robot.black_ball_cnt < 1:
 		logger.debug("Find:Exit")
-		valid_classes = [ObjectClasses.EXIT.value]
+		Valid_Classes = [ObjectClasses.EXIT.value]
 	else:
 		if not robot.is_ball_caching:
 			if robot.silver_ball_cnt < 2:
 				logger.debug("Find:Silver")
-				valid_classes = [ObjectClasses.SILVER_BALL.value]
+				Valid_Classes = [ObjectClasses.SILVER_BALL.value]
 			else:
 				logger.debug("Find:Black")
-				valid_classes = [ObjectClasses.BLACK_BALL.value]
+				Valid_Classes = [ObjectClasses.BLACK_BALL.value]
 		else:
 			if robot.silver_ball_cnt < 2:
 				logger.debug("Find:GREEN")
-				valid_classes = [ObjectClasses.GREEN_CAGE.value]
+				Valid_Classes = [ObjectClasses.GREEN_CAGE.value]
 			else:
 				logger.debug("Find:RED")
-				valid_classes = [ObjectClasses.RED_CAGE.value]
+				Valid_Classes = [ObjectClasses.RED_CAGE.value]
+
+	if modules.settings.DEBUG_MODE:
+		annotated = results[0].plot()
+		cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
 
 	# Find best target from detections
-	robot.target_angle = find_best_target(boxes, valid_classes, image_width)
+	robot.target_position = find_best_target(results, image_width)# NOTE: Find target, return dist and area size
 
-	if robot.target_angle is not None:
-		print(f"Targeting class(es) {valid_classes}. Best target offset = {robot.target_angle:.1f}")
+	if robot.target_position is not None:
+		logger.debug(f"Targeting class(es) {Valid_Classes}. Best target offset = {robot.target_position:.1f} , {robot.target_size}")# TODO: continue 180 degrees
 	else:
-		print(f"Targeting class(es) {valid_classes}. No target detected.")
+		logger.debug(f"Targeting class(es) {Valid_Classes}. No target detected.")
 
-	# Control logic
-	if robot.target_angle is None:
-		turn()
-	set_motor_speeds_from_angle()
-
-	# Check for ball catching
-	if boxes:
-		for box in boxes:
-			w, h = map(float, box.xywh[0][2:])
-			area = w * h
-			catch_ball(area)
-
+	if not(robot.is_ball_caching) and robot.target_size <= BALL_CATCH_SIZE:
+		catch_ball()
+	elif robot.is_ball_caching and F_U_SONIC < 1:
+		release_ball()
+	else:
+		return# TODO: run for target
 	# Alignment status
-	if robot.target_angle is not None and abs(robot.target_angle) < THRESHOLD:
-		robot.is_aligned = True
-		print(f"Robot is aligned! Motor Values: L={L_motor_value}, R={R_motor_value}")
-	else:
-		print(f"Aligning... Motor Values: L={L_motor_value}, R={R_motor_value}")
-
-# Cage -> u_sonic
-# First, get angles of all objects
+	logger.debug(f"Aligning... Motor Values: L={L_motor_value}, R={R_motor_value}")
