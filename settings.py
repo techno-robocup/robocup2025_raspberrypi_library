@@ -50,6 +50,8 @@ is_rescue_area = False
 MODEL = YOLO("best.pt")
 yolo_results = None
 
+last_yolo_time = 0
+
 
 def detect_green_marks(orig_image: np.ndarray,
                        blackline_image: np.ndarray) -> None:
@@ -550,8 +552,13 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 def Rescue_Camera_Pre_callback(request):
     """Rescue camera callback function."""
-    global yolo_results
+    global yolo_results, last_yolo_time
+
     try:
+        current_time = time.time()
+        if current_time - last_yolo_time < 0.05:
+            return
+
         with MappedArray(request, "lores") as m:
             logger.debug("Rescue_Camera_Pre_callback")
 
@@ -560,10 +567,16 @@ def Rescue_Camera_Pre_callback(request):
             cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
 
             yolo_results = MODEL(fixed_image)
+
             modules.rescue.rescue_loop_func()
 
+            last_yolo_time = current_time
+
     except KeyboardInterrupt:
-        print("[INFO] Interrupted by user")
+        logger.debug("[INFO] Interrupted by user")
+    except Exception as e:
+        logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
+
 
 
 # Camera configuration constants
