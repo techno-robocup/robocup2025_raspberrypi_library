@@ -9,6 +9,8 @@ import cv2
 logger = modules.log.get_logger()
 lock = threading.Lock()
 
+P = 1.0
+AP = 1.0
 
 class ObjectClasses(Enum):
 	BLACK_BALL = 0
@@ -124,17 +126,23 @@ def find_best_target(results,image_width):# TODO: turn 180 degrees
 def change_position():
 	global L_Motor_Value,R_Motor_Value
 	"""Turn 180 degrees"""
-	
-
-
-def run_to_target():
-	if robot.target_position is None:
-		return# TODO: Turn or change position
-	else:
-		return
+	pass
 
 
 def set_motor_speeds():
+	global L_Motor_Value,R_Motor_Value
+
+	diff_angle = robot.target_position * P
+	if diff_angle < 1*P:
+		diff_angle = 0
+
+	if robot.is_ball_caching:
+		dist = 100
+	else:
+		dist = BALL_CATCH_SIZE - robot.target_size * AP
+
+	L_Motor_Value = 1500 + diff_angle + dist#TODO:Edit values
+	R_Motor_Value = 1500 - diff_angle + dist
 
 
 #def set_motor_speeds_from_position():
@@ -173,7 +181,7 @@ def set_motor_speeds():
 
 
 def rescue_loop_func():
-	global L_Motor_Value, R_Motor_Value
+	global L_Motor_Value,R_Motor_Value
 
 	logger.debug("call rescue_loop_func")
 	#robot.is_aligned = False
@@ -183,7 +191,6 @@ def rescue_loop_func():
 		return
 
 	results = modules.settings.yolo_results
-	return_boxes = results[0].boxes
 	image_width = results[0].orig_shape[1]
 
 	if robot.silver_ball_cnt== 2 and robot.black_ball_cnt == 1:
@@ -222,6 +229,9 @@ def rescue_loop_func():
 	elif robot.is_ball_caching and F_U_SONIC < 1:
 		release_ball()
 	else:
-		return# TODO: run for target
+		if robot.target_position is not None:
+			set_motor_speeds()
+		else:
+			change_position()
 	# Alignment status
-	logger.debug(f"Aligning... Motor Values: L={L_motor_value}, R={R_motor_value}")
+	logger.debug(f"Aligning... Motor Values: L={L_Motor_Value}, R={R_Motor_Value}")
