@@ -167,50 +167,40 @@ def set_motor_speeds():
 
 def rescue_loop_func():
   global L_Motor_Value, R_Motor_Value, Valid_Classes
-
-  logger.debug("call rescue_loop_func")
-
   if modules.settings.yolo_results is None:
-    logger.debug("No YOLO results available")
+    logger.debug("No YOLO results available, stopping motors.")
+    L_Motor_Value = MOTOR_NEUTRAL
+    R_Motor_Value = MOTOR_NEUTRAL
     return
 
   results = modules.settings.yolo_results
   image_width = results[0].orig_shape[1]
 
   if robot.silver_ball_cnt == 2 and robot.black_ball_cnt == 1:
-    Valid_Classes[:] = [ObjectClasses.EXIT.value]
+    Valid_Classes = [ObjectClasses.EXIT.value]
+  elif not robot.is_ball_caching:
+    Valid_Classes = [ObjectClasses.SILVER_BALL.value] if robot.silver_ball_cnt < 2 else [ObjectClasses.BLACK_BALL.value]
   else:
-    if not robot.is_ball_caching:
-      if robot.silver_ball_cnt < 2:
-        Valid_Classes[:] = [ObjectClasses.SILVER_BALL.value]
-      else:
-        Valid_Classes[:] = [ObjectClasses.BLACK_BALL.value]
-    else:
-      if robot.silver_ball_cnt < 2:
-        Valid_Classes[:] = [ObjectClasses.GREEN_CAGE.value]
-      else:
-        Valid_Classes[:] = [ObjectClasses.RED_CAGE.value]
-  if modules.settings.DEBUG_MODE:
-    try:
-      annotated = results[0].plot()
-      cv2.imwrite(f"bin/{time.time():.3f}_rescue_loop_detections.jpg", annotated)
-    except Exception as e:
-      logger.debug(f"Could not save annotated image: {e}")
+    Valid_Classes = [ObjectClasses.GREEN_CAGE.value] if robot.silver_ball_cnt < 2 else [ObjectClasses.RED_CAGE.value]
+
   find_best_target(results, image_width)
 
   if robot.target_position is None:
-    logger.debug("No target -> exploratory action")
+    logger.debug("No target found -> executing change_position()")
     change_position()
     return
+  else:
+    robot.cnt_turning_degrees = 0
+    if not robot.is_ball_caching and robot.target_size >= BALL_CATCH_SIZE:
+      logger.debug(f"Target is close (size: {robot.target_size:.1f}). Initiating catch_ball()")
+      catch_ball()
+      return
+    if robot.is_ball_caching and F_U_SONIC is not None and F_U_SONIC < 1.0:
+      logger.debug(f"Close to wall (dist: {F_U_SONIC:.1f}). Initiating release_ball()")
+      release_ball()
+      return
 
-  logger.debug(f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}, size={robot.target_size:.1f}")
+    logger.debug(f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating...")
+    set_motor_speeds()
 
-  if (not robot.is_ball_caching) and (robot.target_size is not None) and (robot.target_size >= BALL_CATCH_SIZE):
-    logger.debug("Condition: catch_ball()")
-    catch_ball()
-    return
-  if robot.is_ball_caching and (F_U_SONIC is not None and F_U_SONIC < 1.0):
-    logger.debug("Condition: release_ball()")
-    release_ball()
-    return
   logger.debug(f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}")
