@@ -1,9 +1,7 @@
 import modules.settings
 from enum import Enum
 import time
-import threading
 import modules.log
-import cv2
 
 logger = modules.log.get_logger()
 
