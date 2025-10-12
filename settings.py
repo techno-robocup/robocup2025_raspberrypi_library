@@ -170,10 +170,10 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
 #      if M["m00"] != 0:
 #        cx = int(M["m10"] / M["m00"])
 #        cy = int(M["m01"] / M["m00"])
-        
+       
 #        # Draw center on image
 #        cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
-        
+       
 #        # Check position vs. middle
 #        if cy > mid_y:   # center is lower half
 #          is_rescue_area = True
@@ -426,7 +426,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
   Find the best contour to follow from multiple candidates.
   Prioritizes contours at the bottom of the image and close to the center.
   Also considers line width and continuity to handle intersections.
-  
+ 
   Returns the selected contour or None if no suitable contour found.
   """
   if not contours:
