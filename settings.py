@@ -170,52 +170,52 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
 #      if M["m00"] != 0:
 #        cx = int(M["m10"] / M["m00"])
 #        cy = int(M["m01"] / M["m00"])
-       
+
 #        # Draw center on image
 #        cv2.circle(img, (cx, cy), 5, (0, 0, 255), -1)
-       
+
 #        # Check position vs. middle
 #        if cy > mid_y:   # center is lower half
 #          is_rescue_area = True
 
-  #"""Detect silver marks and set rescue area flag."""
-  #global silver_marks, is_rescue_area
+#"""Detect silver marks and set rescue area flag."""
+#global silver_marks, is_rescue_area
 
-  #hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
+#hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
-  ## Silver color range
-  #lower_silver = np.array([0, 0, 200])
-  #upper_silver = np.array([179, 60, 255])
+## Silver color range
+#lower_silver = np.array([0, 0, 200])
+#upper_silver = np.array([179, 60, 255])
 
-  #silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
+#silver_mask = cv2.inRange(hsv, lower_silver, upper_silver)
 
-  ## Clean up noise
-  #kernel = np.ones((3, 3), np.uint8)
-  #silver_mask = cv2.morphologyEx(silver_mask,
-  #                               cv2.MORPH_OPEN,
-  #                               kernel,
-  #                               iterations=2)
+## Clean up noise
+#kernel = np.ones((3, 3), np.uint8)
+#silver_mask = cv2.morphologyEx(silver_mask,
+#                               cv2.MORPH_OPEN,
+#                               kernel,
+#                               iterations=2)
 
-  #if DEBUG_MODE:
-  #  cv2.imwrite(f"bin/{time.time():.3f}_silver_mask.jpg", silver_mask)
+#if DEBUG_MODE:
+#  cv2.imwrite(f"bin/{time.time():.3f}_silver_mask.jpg", silver_mask)
 
-  #contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
-  #                               cv2.CHAIN_APPROX_SIMPLE)
+#contours, _ = cv2.findContours(silver_mask, cv2.RETR_EXTERNAL,
+#                               cv2.CHAIN_APPROX_SIMPLE)
 
-  #silver_marks.clear()
+#silver_marks.clear()
 
-  #for contour in contours:
-  #  if cv2.contourArea(contour) < MIN_SILVER_AREA:
-  #    x, y, w, h = cv2.boundingRect(contour)
-  #    center_x = x + w // 2
-  #    center_y = y + h // 2
+#for contour in contours:
+#  if cv2.contourArea(contour) < MIN_SILVER_AREA:
+#    x, y, w, h = cv2.boundingRect(contour)
+#    center_x = x + w // 2
+#    center_y = y + h // 2
 
-  #    silver_marks.append((center_x, center_y, w, h))
-  #    if center_y > orig_image.shape[0] // 2:
-  #      is_rescue_area = True
+#    silver_marks.append((center_x, center_y, w, h))
+#    if center_y > orig_image.shape[0] // 2:
+#      is_rescue_area = True
 
-  #    if DEBUG_MODE:
-  #      _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
+#    if DEBUG_MODE:
+#      _draw_silver_mark_debug(orig_image, x, y, w, h, center_x, center_y)
 
 
 def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
@@ -551,32 +551,31 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 
 def Rescue_Camera_Pre_callback(request):
-    """Rescue camera callback function."""
-    global yolo_results, last_yolo_time
+  """Rescue camera callback function."""
+  global yolo_results, last_yolo_time
 
-    try:
-        current_time = time.time()
-        if current_time - last_yolo_time < 0.05:
-            return
+  try:
+    current_time = time.time()
+    if current_time - last_yolo_time < 0.05:
+      return
 
-        with MappedArray(request, "lores") as m:
-            logger.debug("Rescue_Camera_Pre_callback")
+    with MappedArray(request, "lores") as m:
+      logger.debug("Rescue_Camera_Pre_callback")
 
-            image = m.array
-            fixed_image = cv2.rotate(image, cv2.ROTATE_180)
-            cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
+      image = m.array
+      fixed_image = cv2.rotate(image, cv2.ROTATE_180)
+      cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
 
-            yolo_results = MODEL(fixed_image)
+      yolo_results = MODEL(fixed_image)
 
-            modules.rescue.rescue_loop_func()
+      modules.rescue.rescue_loop_func()
 
-            last_yolo_time = current_time
+      last_yolo_time = current_time
 
-    except KeyboardInterrupt:
-        logger.debug("[INFO] Interrupted by user")
-    except Exception as e:
-        logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
-
+  except KeyboardInterrupt:
+    logger.debug("[INFO] Interrupted by user")
+  except Exception as e:
+    logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
 
 
 # Camera configuration constants

@@ -18,15 +18,20 @@ MOTOR_MIN = 1000
 MOTOR_MAX = 2000
 MOTOR_NEUTRAL = 1500
 
+
 class ObjectClasses(Enum):
   BLACK_BALL = 0
   EXIT = 1
   GREEN_CAGE = 2
   RED_CAGE = 3
   SILVER_BALL = 4
+
+
 Valid_Classes = []
 
+
 class RobotState:
+
   def __init__(self):
     self.silver_ball_cnt = 0
     self.black_ball_cnt = 0
@@ -35,6 +40,7 @@ class RobotState:
     self.target_size = None
     self.cnt_turning_degrees = 0
     self.cnt_turning_side = 0
+
 
 robot = RobotState()
 
@@ -45,6 +51,7 @@ Wire_Motor_Value = 0
 L_U_SONIC = None
 F_U_SONIC = None
 R_U_SONIC = None
+
 
 def catch_ball():
   global Arm_Motor_Value, Wire_Motor_Value, L_Motor_Value, R_Motor_Value
@@ -61,6 +68,7 @@ def catch_ball():
   robot.is_ball_caching = True
   time.sleep(1.5)
   logger.debug("catch_ball done")
+
 
 def release_ball():
   global Arm_Motor_Value, Wire_Motor_Value, L_Motor_Value, R_Motor_Value
@@ -83,6 +91,7 @@ def release_ball():
   L_Motor_Value = MOTOR_NEUTRAL
   R_Motor_Value = MOTOR_NEUTRAL
   logger.debug("release_ball done")
+
 
 def find_best_target(results, image_width):
   global Valid_Classes
@@ -112,10 +121,13 @@ def find_best_target(results, image_width):
   robot.target_position = best_target_pos
   robot.target_size = best_target_area
   if best_target_pos is not None:
-    logger.debug(f"Target found offset={best_target_pos:.1f}, area={best_target_area:.1f}")
+    logger.debug(
+        f"Target found offset={best_target_pos:.1f}, area={best_target_area:.1f}"
+    )
   else:
     logger.debug("No valid target found")
   return best_target_pos
+
 
 def change_position():
   global L_Motor_Value, R_Motor_Value, F_U_SONIC, L_U_SONIC
@@ -144,8 +156,9 @@ def change_position():
       robot.cnt_turning_degrees += 45
   return
 
+
 def set_motor_speeds():
-  global L_Motor_Value, R_Motor_Value,robot
+  global L_Motor_Value, R_Motor_Value, robot
   if robot.target_position is None or robot.target_size is None:
     L_Motor_Value = 1500
     R_Motor_Value = 1500
@@ -177,9 +190,13 @@ def rescue_loop_func():
   if robot.silver_ball_cnt == 2 and robot.black_ball_cnt == 1:
     Valid_Classes = [ObjectClasses.EXIT.value]
   elif not robot.is_ball_caching:
-    Valid_Classes = [ObjectClasses.SILVER_BALL.value] if robot.silver_ball_cnt < 2 else [ObjectClasses.BLACK_BALL.value]
+    Valid_Classes = [
+        ObjectClasses.SILVER_BALL.value
+    ] if robot.silver_ball_cnt < 2 else [ObjectClasses.BLACK_BALL.value]
   else:
-    Valid_Classes = [ObjectClasses.GREEN_CAGE.value] if robot.silver_ball_cnt < 2 else [ObjectClasses.RED_CAGE.value]
+    Valid_Classes = [
+        ObjectClasses.GREEN_CAGE.value
+    ] if robot.silver_ball_cnt < 2 else [ObjectClasses.RED_CAGE.value]
 
   find_best_target(results, image_width)
 
@@ -190,15 +207,20 @@ def rescue_loop_func():
   else:
     robot.cnt_turning_degrees = 0
     if not robot.is_ball_caching and robot.target_size >= BALL_CATCH_SIZE:
-      logger.debug(f"Target is close (size: {robot.target_size:.1f}). Initiating catch_ball()")
+      logger.debug(
+          f"Target is close (size: {robot.target_size:.1f}). Initiating catch_ball()"
+      )
       catch_ball()
       return
     if robot.is_ball_caching and F_U_SONIC is not None and F_U_SONIC < 1.0:
-      logger.debug(f"Close to wall (dist: {F_U_SONIC:.1f}). Initiating release_ball()")
+      logger.debug(
+          f"Close to wall (dist: {F_U_SONIC:.1f}). Initiating release_ball()")
       release_ball()
       return
 
-    logger.debug(f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating...")
+    logger.debug(
+        f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating..."
+    )
     set_motor_speeds()
 
   logger.debug(f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}")
