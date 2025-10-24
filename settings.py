@@ -309,6 +309,7 @@ def _draw_silver_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
 def Linetrace_Camera_Pre_callback(request):
   """Optimized camera callback for line tracing."""
   global lastblackline, slope
+  logger.debug("Line trace camera call-back called")
   current_time = time.time()
 
   try:
