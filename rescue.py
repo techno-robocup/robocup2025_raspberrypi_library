@@ -5,9 +5,9 @@ import modules.log
 
 logger = modules.log.get_logger()
 
-P = 1.0
-AP = 1.0
-CP = 1.0
+P = 0.1
+AP = 0.1
+CP = 0.1
 BALL_CATCH_SIZE = 1000
 TURN_45_TIME = 0.45
 TURN_180_TIME = 1.0

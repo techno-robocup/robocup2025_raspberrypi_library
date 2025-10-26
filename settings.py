@@ -117,37 +117,53 @@ def detect_green_marks(orig_image: np.ndarray,
 
 
 def detect_red_marks(orig_image: np.ndarray) -> None:
-  """Detect red marks and set stop_requested flag."""
-  global stop_requested, red_contours
-  hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
+    """Detect red marks and set stop_requested flag."""
+    global stop_requested, red_contours
 
-  # Red color range
-  lower_red = np.array([160, 70, 110])
-  upper_red = np.array([179, 255, 255])
+    hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
-  red_mask = cv2.inRange(hsv, lower_red, upper_red)
+    lower_red = np.array([160, 70, 110])
+    upper_red = np.array([179, 255, 255])
 
-  # Clean up noise with morphology
-  kernel = np.ones((3, 3), np.uint8)
-  red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
+    red_mask = cv2.inRange(hsv, lower_red, upper_red)
 
-  if DEBUG_MODE:
-    cv2.imwrite(f"bin/{time.time():.3f}_red_mask.jpg", red_mask)
-
-  red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL,
-                                     cv2.CHAIN_APPROX_SIMPLE)
-  read_red = 0
-  for contour in red_contours:
-    #if cv2.contourArea(contour) > MIN_RED_AREA://TODO: check area
-    x, y, w, h = cv2.boundingRect(contour)
-    center_x = x + w // 2
-    center_y = y + h // 2
-    read_red += 1
-    if read_red >= 3:
-      stop_requested = True
+    kernel = np.ones((3, 3), np.uint8)
+    red_mask = cv2.morphologyEx(red_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
 
     if DEBUG_MODE:
-      _draw_red_mark_debug(orig_image, x, y, w, h, center_x, center_y)
+        cv2.imwrite(f"bin/{time.time():.3f}_red_mask.jpg", red_mask)
+
+    red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    h, w, _ = orig_image.shape
+    margin_x = int(w * 0.1)
+    margin_y = int(h * 0.1)
+    left, right = margin_x, w - margin_x
+    top, bottom = margin_y, h - margin_y
+
+    count = 0
+
+    for contour in red_contours:
+        x, y, cw, ch = cv2.boundingRect(contour)
+        center_x = x + cw // 2
+        center_y = y + ch // 2
+
+        if DEBUG_MODE:
+            cv2.circle(orig_image, (center_x, center_y), 5, (0, 0, 255), -1)
+            _draw_red_mark_debug(orig_image, x, y, cw, ch, center_x, center_y)
+
+        if left <= center_x <= right and top <= center_y <= bottom:
+            count += 1
+
+    if DEBUG_MODE:
+        cv2.rectangle(orig_image, (left, top), (right, bottom), (0, 255, 0), 2)
+
+    if count >= 3:
+        stop_requested = True
+
+    if DEBUG_MODE:
+        print(f"Red marks in center zone: {count}")
+
 
 
 #def detect_silver_marks(orig_image: np.ndarray) -> None:
