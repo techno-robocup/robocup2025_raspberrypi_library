@@ -161,9 +161,6 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
     if count >= 3:
         stop_requested = True
 
-    if DEBUG_MODE:
-        print(f"Red marks in center zone: {count}")
-
 
 
 #def detect_silver_marks(orig_image: np.ndarray) -> None:
