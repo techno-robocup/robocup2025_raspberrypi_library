@@ -158,8 +158,8 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
     if DEBUG_MODE:
         cv2.rectangle(orig_image, (left, top), (right, bottom), (0, 255, 0), 2)
 
-    if count >= 3:
-        stop_requested = True
+    #if count >= 3:
+        #stop_requested = True
 
 
 
