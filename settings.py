@@ -44,7 +44,7 @@ silver_marks: List[Tuple[int, int, int, int]] = []
 
 # Control flags
 stop_requested = False
-is_rescue_area = False
+is_rescue_area = True
 
 # Defining vars to be used by YOLO
 MODEL = YOLO("best.pt")
@@ -565,31 +565,33 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 
 def Rescue_Camera_Pre_callback(request):
-  """Rescue camera callback function."""
-  global yolo_results, last_yolo_time
+    """Rescue camera callback function."""
+    global yolo_results, last_yolo_time
 
-  try:
-    current_time = time.time()
-    if current_time - last_yolo_time < 0.05:
-      return
+    try:
+        current_time = time.time()
+        if current_time - last_yolo_time < 0.05:
+            return
 
-    with MappedArray(request, "lores") as m:
-      logger.debug("Rescue_Camera_Pre_callback")
+        with MappedArray(request, "lores") as m:
+            logger.debug("Rescue_Camera_Pre_callback")
 
-      image = m.array
-      fixed_image = cv2.rotate(image, cv2.ROTATE_180)
-      cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
+            image = m.array
+            fixed_image = cv2.rotate(image, cv2.ROTATE_180)
+            cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
 
-      yolo_results = MODEL(fixed_image)
+            yolo_results = MODEL(fixed_image)
+            modules.settings.yolo_results = yolo_results
 
-      modules.rescue.rescue_loop_func()
+            modules.rescue.rescue_loop_func()
 
-      last_yolo_time = current_time
+            last_yolo_time = current_time
 
-  except KeyboardInterrupt:
-    logger.debug("[INFO] Interrupted by user")
-  except Exception as e:
-    logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
+    except KeyboardInterrupt:
+        logger.debug("[INFO] Interrupted by user")
+    except Exception as e:
+        logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
+
 
 
 # Camera configuration constants
