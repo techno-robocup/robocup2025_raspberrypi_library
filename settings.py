@@ -153,14 +153,14 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
       cv2.circle(orig_image, (center_x, center_y), 5, (0, 0, 255), -1)
       _draw_red_mark_debug(orig_image, x, y, cw, ch, center_x, center_y)
 
-    if left <= center_x <= right and top <= center_y <= bottom:
+    if left <= center_x <= right and top <= center_y <= bottom and cv2.contourArea(contour) > 20:
       count += 1
 
   if DEBUG_MODE:
     cv2.rectangle(orig_image, (left, top), (right, bottom), (0, 255, 0), 2)
 
-  #if count >= 3:
-  #stop_requested = True
+  if count >= 3:
+    stop_requested = True
 
 
 #def detect_silver_marks(orig_image: np.ndarray) -> None:
