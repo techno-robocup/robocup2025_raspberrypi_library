@@ -582,7 +582,8 @@ def Rescue_Camera_Pre_callback(request):
 
             yolo_results = MODEL(fixed_image)
             modules.settings.yolo_results = yolo_results
-            cv2.imwrite(f"bin/{str(time.time())}_rescue_result.jpg", yolo_results)
+            result_image = yolo_results[0].plot()
+            cv2.imwrite(f"bin/{time.time():.3f}_rescue_result.jpg", result_image)
             modules.rescue.rescue_loop_func()
 
             last_yolo_time = current_time
