@@ -155,7 +155,7 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
   if DEBUG_MODE and red_valid_contours:
     cv2.drawContours(orig_image, red_valid_contours, -1, (0, 0, 255), 2)
     for contour in red_valid_contours:
-      x, y, cw, ch = cv2.red_boundingRect(contour)
+      x, y, cw, ch = cv2.boundingRect(contour)
       center_x = x + cw // 2
       center_y = y + ch // 2
       cv2.circle(orig_image, (center_x, center_y), 5, (0, 0, 255), -1)
