@@ -331,6 +331,15 @@ def Linetrace_Camera_Pre_callback(request):
         # Get image from camera
         image = m.array
 
+        # Crop width by 10% to reduce horizontal FOV
+        h, w = image.shape[:2]
+        crop_w = int(w * 0.9)  # 288 pixels (90% of 320)
+        x_start = (w - crop_w) // 2  # 16 pixels from left
+        image = image[:, x_start:x_start + crop_w]  # Keep full height
+
+        # Resize back to original width for consistent processing
+        image = cv2.resize(image, (w, h), interpolation=cv2.INTER_LINEAR)
+
         # Save original image for debugging
         if DEBUG_MODE:
           cv2.imwrite(f"bin/{current_time:.3f}_original.jpg", image)
