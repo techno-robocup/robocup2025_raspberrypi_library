@@ -363,7 +363,7 @@ def Linetrace_Camera_Pre_callback(request):
                                         iterations=3)
 
         # Detect marks in parallel (if threading is available)
-        #detect_red_marks(image)
+        detect_red_marks(image)
         detect_green_marks(image, binary_image)
         #detect_silver_marks(image)
 
