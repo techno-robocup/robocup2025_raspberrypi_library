@@ -143,22 +143,23 @@ def detect_red_marks(orig_image: np.ndarray) -> None:
   top, bottom = margin_y, h - margin_y
 
   count = 0
-
+  red_valid_contours = []
   for contour in red_contours:
-    x, y, cw, ch = cv2.boundingRect(contour)
-    center_x = x + cw // 2
-    center_y = y + ch // 2
-
-    if DEBUG_MODE:
+    if cv2.contourArea(contour) > 20:
+      x, y, cw, ch = cv2.boundingRect(contour)
+      center_x = x + cw // 2
+      center_y = y + ch // 2
+      if left <= center_x <= right and top <= center_y <= bottom:
+        red_valid_contours.append(contour)
+        count += 1
+  if DEBUG_MODE and red_valid_contours:
+    cv2.drawContours(orig_image, red_valid_contours, -1, (0, 0, 255), 2)
+    for contour in red_valid_contours:
+      x, y, cw, ch = cv2.red_boundingRect(contour)
+      center_x = x + cw // 2
+      center_y = y + ch // 2
       cv2.circle(orig_image, (center_x, center_y), 5, (0, 0, 255), -1)
-      _draw_red_mark_debug(orig_image, x, y, cw, ch, center_x, center_y)
-
-    if left <= center_x <= right and top <= center_y <= bottom and cv2.contourArea(contour) > 20:
-      count += 1
-
-  if DEBUG_MODE:
-    cv2.rectangle(orig_image, (left, top), (right, bottom), (0, 255, 0), 2)
-
+    cv2.imwrite(f"bin/{time.time():.3f}_red_detected.jpg", orig_image)
   if count >= 3:
     stop_requested = True
 
