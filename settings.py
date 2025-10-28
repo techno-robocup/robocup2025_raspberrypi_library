@@ -22,7 +22,7 @@ COMPUTING_P = 297
 MIN_GREEN_AREA = 200
 MIN_RED_AREA = 200
 MIN_SILVER_AREA = 200
-MIN_BLACK_LINE_AREA = 100
+MIN_BLACK_LINE_AREA = 300
 # Threading locks
 linetracecam_threadlock = threading.Lock()
 LASTBLACKLINE_LOCK = threading.Lock()
