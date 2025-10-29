@@ -7,13 +7,13 @@ import math
 logger = modules.log.get_logger()
 
 P = 0.2
-AP = 1
+AP = 1.5
 CP = 1
 BALL_CATCH_SIZE = 130000
 TURN_45_TIME = 3
 TURN_180_TIME = 12
 FORWARD_STEP_TIME = 0.3
-WALL_DIST_THRESHOLD = 5.0
+WALL_DIST_THRESHOLD = 5.03072
 FRONT_CLEAR_THRESHOLD = 3.0
 MOTOR_MIN = 1000
 MOTOR_MAX = 2000
@@ -53,45 +53,46 @@ L_U_SONIC = None
 F_U_SONIC = None
 R_U_SONIC = None
 
+Arm_Move_Flag = 0
 
 def catch_ball():
   global Arm_Motor_Value, Wire_Motor_Value, L_Motor_Value, R_Motor_Value
   logger.debug("Executing catch_ball()")
-  Arm_Motor_Value = 3072
-  time.sleep(3)
-  L_Motor_Value = 1550
-  R_Motor_Value = L_Motor_Value
-  time.sleep(0.5)
-  L_Motor_Value = MOTOR_NEUTRAL
-  R_Motor_Value = MOTOR_NEUTRAL
-  Wire_Motor_Value = 1
-  Arm_Motor_Value = 1024
+  #Arm_Motor_Value = 3072
+  #time.sleep(3)
+  #L_Motor_Value = 1550
+  #R_Motor_Value = L_Motor_Value
+  #time.sleep(0.5)
+  #L_Motor_Value = MOTOR_NEUTRAL
+  #R_Motor_Value = MOTOR_NEUTRAL
+  #Wire_Motor_Value = 1
+  #Arm_Motor_Value = 1024
   robot.is_ball_caching = True
-  time.sleep(1.5)
+  #time.sleep(1.5)
   logger.debug("catch_ball done")
 
 
 def release_ball():
   global Arm_Motor_Value, Wire_Motor_Value, L_Motor_Value, R_Motor_Value
   logger.debug("Executing release_ball()")
-  L_Motor_Value = 1550
-  R_Motor_Value = L_Motor_Value
-  Arm_Motor_Value = 3072
-  time.sleep(3)
-  Wire_Motor_Value = 0
-  Arm_Motor_Value = 1024
-  robot.is_ball_caching = False
+  #L_Motor_Value = 1550
+  #R_Motor_Value = L_Motor_Value
+  #Arm_Motor_Value = 3072
+  #time.sleep(3)
+  #Wire_Motor_Value = 0
+  #Arm_Motor_Value = 1024
+  #robot.is_ball_caching = False
   if Valid_Classes == [ObjectClasses.GREEN_CAGE.value]:
     robot.silver_ball_cnt += 1
   else:
     robot.black_ball_cnt += 1
-  time.sleep(2)
-  L_Motor_Value = 1400
-  R_Motor_Value = L_Motor_Value
-  time.sleep(1)
-  L_Motor_Value = MOTOR_NEUTRAL
-  R_Motor_Value = MOTOR_NEUTRAL
-  logger.debug("release_ball done")
+  #time.sleep(2)
+  #L_Motor_Value = 1400
+  #R_Motor_Value = L_Motor_Value
+  #time.sleep(1)
+  #L_Motor_Value = MOTOR_NEUTRAL
+  #R_Motor_Value = MOTOR_NEUTRAL
+  #logger.debug("release_ball done")
 
 
 def find_best_target(results, image_width):
@@ -132,30 +133,30 @@ def find_best_target(results, image_width):
 
 def change_position():
   global L_Motor_Value, R_Motor_Value, F_U_SONIC, L_U_SONIC
-  logger.debug("change_position() called")
-  if robot.cnt_turning_degrees >= 90:
-    if F_U_SONIC is not None and F_U_SONIC >= 3:
-      L_Motor_Value = 1700 - (L_U_SONIC * CP)
-      R_Motor_Value = 1700 + (L_U_SONIC * CP)
-    elif F_U_SONIC <= 3:
-      L_Motor_Value = 2000
-      R_Motor_Value = 1000
-      time.sleep(TURN_180_TIME)
-      L_Motor_Value = 1500
-      R_Motor_Value = 1500
-      robot.cnt_turning_side += 1
-      robot.cnt_turning_degrees = 0
-    elif F_U_SONIC is None:
-      L_Motor_Value = MOTOR_NEUTRAL
-      R_Motor_Value = MOTOR_NEUTRAL
-    else:
-      L_Motor_Value = 1750
-      R_Motor_Value = 1250
-      time.sleep(TURN_45_TIME)
-      L_Motor_Value = 1500
-      R_Motor_Value = 1500
-      robot.cnt_turning_degrees += 45
-  logger.debug("L: {L_Motor_Value} R: {R_Motor_Value}")
+  logger.debug(f"SonicF :{F_U_SONIC} SonicL:{L_U_SONIC} cnt_turning:{robot.cnt_turning_degrees}")
+  #if robot.cnt_turning_degrees >= 90:
+  #  if F_U_SONIC is not None and F_U_SONIC >= 3:
+  #    L_Motor_Value = 1700 - (L_U_SONIC * CP)
+  #    R_Motor_Value = 1700 + (L_U_SONIC * CP)
+  #  elif F_U_SONIC <= 3:
+  #    L_Motor_Value = 2000
+  #    R_Motor_Value = 1000
+  #    time.sleep(TURN_180_TIME)
+  #    L_Motor_Value = 1500
+  #    R_Motor_Value = 1500
+  #    robot.cnt_turning_side += 1
+  #    robot.cnt_turning_degrees = 0
+  #  elif F_U_SONIC is None:
+  #    L_Motor_Value = MOTOR_NEUTRAL
+  #    R_Motor_Value = MOTOR_NEUTRAL
+  #else:
+  L_Motor_Value = 1750
+  R_Motor_Value = 1250
+  time.sleep(TURN_45_TIME)
+  L_Motor_Value = 1500
+  R_Motor_Value = 1500
+  robot.cnt_turning_degrees += 45
+  logger.debug(f"L: {L_Motor_Value} R: {R_Motor_Value}")
   return
 
 
@@ -170,7 +171,10 @@ def set_motor_speeds():
   if robot.is_ball_caching:
     dist_term = 100
   else:
-    dist_term = (math.sqrt(BALL_CATCH_SIZE) - math.sqrt(robot.target_size)) * AP
+    if BALL_CATCH_SIZE > robot.target_size:
+      dist_term = (math.sqrt(BALL_CATCH_SIZE) - math.sqrt(robot.target_size)) * AP + 80
+    else:
+      dist_term = 0
   base_L = 1500 + diff_angle + dist_term
   base_R = 1500 - diff_angle + dist_term
   L_Motor_Value = int(min(max(base_L, 1000), 2000))
@@ -179,11 +183,10 @@ def set_motor_speeds():
 
 
 def rescue_loop_func():
-  global L_Motor_Value, R_Motor_Value, Valid_Classes
+  global L_Motor_Value, R_Motor_Value, Valid_Classes,Arm_Move_Flag
   if modules.settings.yolo_results is None:
     logger.debug("No YOLO results available, stopping motors.")
-    L_Motor_Value = MOTOR_NEUTRAL
-    R_Motor_Value = MOTOR_NEUTRAL
+    change_position()
     return
 
   results = modules.settings.yolo_results
@@ -201,28 +204,29 @@ def rescue_loop_func():
     ] if robot.silver_ball_cnt < 2 else [ObjectClasses.RED_CAGE.value]
 
   find_best_target(results, image_width)
+  if Arm_Move_Flag == 0:
+    if robot.target_position is None:
+      logger.debug("No target found -> executing change_position()")
+      change_position()
+      return
+    else:
+      robot.cnt_turning_degrees = 0
+      if not robot.is_ball_caching and robot.target_size >= BALL_CATCH_SIZE:
+        logger.debug(
+            f"Target is close (size: {robot.target_size:.1f}). Initiating catch_ball()"
+        )
+        catch_ball()
+        Arm_Move_Flag = 1
+        return
+      if robot.is_ball_caching and F_U_SONIC is not None and F_U_SONIC < 1.0:
+        logger.debug(
+            f"Close to wall (dist: {F_U_SONIC:.1f}). Initiating release_ball()")
+        release_ball()
+        Arm_Move_Flag = 2
+        return
 
-  if robot.target_position is None:
-    logger.debug("No target found -> executing change_position()")
-    change_position()
-    return
-  else:
-    robot.cnt_turning_degrees = 0
-    if not robot.is_ball_caching and robot.target_size >= BALL_CATCH_SIZE:
       logger.debug(
-          f"Target is close (size: {robot.target_size:.1f}). Initiating catch_ball()"
+          f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating..."
       )
-      catch_ball()
-      return
-    if robot.is_ball_caching and F_U_SONIC is not None and F_U_SONIC < 1.0:
-      logger.debug(
-          f"Close to wall (dist: {F_U_SONIC:.1f}). Initiating release_ball()")
-      release_ball()
-      return
-
-    logger.debug(
-        f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating..."
-    )
-    set_motor_speeds()
-
-  logger.debug(f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}")
+      set_motor_speeds()
+  logger.debug(f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}, Sonic:{F_U_SONIC}")
