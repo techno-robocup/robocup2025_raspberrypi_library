@@ -2,15 +2,16 @@ import modules.settings
 from enum import Enum
 import time
 import modules.log
+import math
 
 logger = modules.log.get_logger()
 
-P = 0.1
-AP = 0.1
-CP = 0.1
-BALL_CATCH_SIZE = 1000
-TURN_45_TIME = 0.45
-TURN_180_TIME = 1.0
+P = 0.2
+AP = 1
+CP = 1
+BALL_CATCH_SIZE = 130000
+TURN_45_TIME = 3
+TURN_180_TIME = 12
 FORWARD_STEP_TIME = 0.3
 WALL_DIST_THRESHOLD = 5.0
 FRONT_CLEAR_THRESHOLD = 3.0
@@ -154,6 +155,7 @@ def change_position():
       L_Motor_Value = 1500
       R_Motor_Value = 1500
       robot.cnt_turning_degrees += 45
+  logger.debug("L: {L_Motor_Value} R: {R_Motor_Value}")
   return
 
 
@@ -168,7 +170,7 @@ def set_motor_speeds():
   if robot.is_ball_caching:
     dist_term = 100
   else:
-    dist_term = BALL_CATCH_SIZE - robot.target_size * AP
+    dist_term = (math.sqrt(BALL_CATCH_SIZE) - math.sqrt(robot.target_size)) * AP
   base_L = 1500 + diff_angle + dist_term
   base_R = 1500 - diff_angle + dist_term
   L_Motor_Value = int(min(max(base_L, 1000), 2000))
