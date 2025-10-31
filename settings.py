@@ -582,9 +582,9 @@ def Rescue_Camera_Pre_callback(request):
         current_time = time.time()
         if current_time - last_yolo_time < 0.05:
             return
-
+        #else:
+        #  yolo_results = None
         with MappedArray(request, "lores") as m:
-            yolo_results = None
             image = m.array
             fixed_image = cv2.rotate(image, cv2.ROTATE_180)
             cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
