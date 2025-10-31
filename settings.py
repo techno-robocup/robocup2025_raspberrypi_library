@@ -13,7 +13,7 @@ logger = modules.log.get_logger()
 
 # Constants
 DEBUG_MODE = True
-BLACK_WHITE_THRESHOLD = 60
+BLACK_WHITE_THRESHOLD = 40
 LINETRACE_CAMERA_LORES_HEIGHT = 180
 LINETRACE_CAMERA_LORES_WIDTH = 320
 COMPUTING_P = 297
@@ -584,8 +584,7 @@ def Rescue_Camera_Pre_callback(request):
             return
 
         with MappedArray(request, "lores") as m:
-            logger.debug("Rescue_Camera_Pre_callback")
-
+            yolo_results = None
             image = m.array
             fixed_image = cv2.rotate(image, cv2.ROTATE_180)
             cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
