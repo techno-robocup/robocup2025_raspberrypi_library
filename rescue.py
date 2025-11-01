@@ -55,6 +55,7 @@ R_U_SONIC = None
 
 Arm_Move_Flag = 0
 
+
 def catch_ball():
   global Arm_Motor_Value, Wire_Motor_Value, L_Motor_Value, R_Motor_Value
   logger.debug("Executing catch_ball()")
@@ -133,7 +134,9 @@ def find_best_target(results, image_width):
 
 def change_position():
   global L_Motor_Value, R_Motor_Value, F_U_SONIC, L_U_SONIC
-  logger.debug(f"SonicF :{F_U_SONIC} SonicL:{L_U_SONIC} cnt_turning:{robot.cnt_turning_degrees}")
+  logger.debug(
+      f"SonicF :{F_U_SONIC} SonicL:{L_U_SONIC} cnt_turning:{robot.cnt_turning_degrees}"
+  )
   #if robot.cnt_turning_degrees >= 90:
   #  if F_U_SONIC is not None and F_U_SONIC >= 3:
   #    L_Motor_Value = 1700 - (L_U_SONIC * CP)
@@ -172,7 +175,8 @@ def set_motor_speeds():
     dist_term = 100
   else:
     if BALL_CATCH_SIZE > robot.target_size:
-      dist_term = (math.sqrt(BALL_CATCH_SIZE) - math.sqrt(robot.target_size)) * AP + 80
+      dist_term = (math.sqrt(BALL_CATCH_SIZE) -
+                   math.sqrt(robot.target_size)) * AP + 80
     else:
       dist_term = 0
   base_L = 1500 + diff_angle + dist_term
@@ -183,7 +187,7 @@ def set_motor_speeds():
 
 
 def rescue_loop_func():
-  global L_Motor_Value, R_Motor_Value, Valid_Classes,Arm_Move_Flag
+  global L_Motor_Value, R_Motor_Value, Valid_Classes, Arm_Move_Flag
   if modules.settings.yolo_results is None:
     logger.debug("No YOLO results available, stopping motors.")
     change_position()
@@ -229,4 +233,6 @@ def rescue_loop_func():
           f"Targeting {Valid_Classes}, offset={robot.target_position:.1f}. Navigating..."
       )
       set_motor_speeds()
-  logger.debug(f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}, Sonic:{F_U_SONIC}")
+  logger.debug(
+      f"Motor Values after run: L={L_Motor_Value}, R={R_Motor_Value}, Sonic:{F_U_SONIC}"
+  )

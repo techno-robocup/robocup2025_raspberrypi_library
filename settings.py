@@ -575,32 +575,31 @@ def visualize_tracking(image: np.ndarray, contour: np.ndarray, cx: int,
 
 
 def Rescue_Camera_Pre_callback(request):
-    """Rescue camera callback function."""
-    global yolo_results, last_yolo_time
+  """Rescue camera callback function."""
+  global yolo_results, last_yolo_time
 
-    try:
-        current_time = time.time()
-        if current_time - last_yolo_time < 0.05:
-            return
-        #else:
-        #  yolo_results = None
-        with MappedArray(request, "lores") as m:
-            image = m.array
-            fixed_image = cv2.rotate(image, cv2.ROTATE_180)
-            cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
+  try:
+    current_time = time.time()
+    if current_time - last_yolo_time < 0.05:
+      return
+    #else:
+    #  yolo_results = None
+    with MappedArray(request, "lores") as m:
+      image = m.array
+      fixed_image = cv2.rotate(image, cv2.ROTATE_180)
+      cv2.imwrite(f"bin/{str(time.time())}_rescue.jpg", fixed_image)
 
-            yolo_results = MODEL(fixed_image, verbose=False)
-            result_image = yolo_results[0].plot()
-            cv2.imwrite(f"bin/{time.time():.3f}_rescue_result.jpg", result_image)
-            # Removed modules.rescue.rescue_loop_func() - now handled in main.py
+      yolo_results = MODEL(fixed_image, verbose=False)
+      result_image = yolo_results[0].plot()
+      cv2.imwrite(f"bin/{time.time():.3f}_rescue_result.jpg", result_image)
+      # Removed modules.rescue.rescue_loop_func() - now handled in main.py
 
-            last_yolo_time = current_time
+      last_yolo_time = current_time
 
-    except KeyboardInterrupt:
-        logger.debug("[INFO] Interrupted by user")
-    except Exception as e:
-        logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
-
+  except KeyboardInterrupt:
+    logger.debug("[INFO] Interrupted by user")
+  except Exception as e:
+    logger.debug(f"Error in Rescue_Camera_Pre_callback: {e}")
 
 
 # Camera configuration constants
