@@ -62,7 +62,7 @@ def detect_green_marks(orig_image: np.ndarray,
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Define green color range
-  lower_green = np.array([30, 40, 20])
+  lower_green = np.array([30, 60, 20])
   upper_green = np.array([100, 255, 255])
 
   # Create mask for green color
