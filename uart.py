@@ -39,6 +39,7 @@ class UART_CON:
 
   def __init__(self):
     self.Serial_Port: Optional[serial.Serial] = None
+    self.device_name: Optional[str] = None
     self.connect_to_port()
 
   def connect_to_port(self) -> None:
@@ -61,13 +62,41 @@ class UART_CON:
       serial_port_id = available_ports[0].device
       logger.debug(f"Using {available_ports[0].device}")
       self.Serial_Port = serial.Serial(serial_port_id, 9600, timeout=None)
+      self.device_name = serial_port_id
       break
+
+  def reconnect(self) -> bool:
+    """Reconnect to the same device."""
+    if not self.device_name:
+      logger.error("No device name stored, cannot reconnect")
+      return False
+
+    try:
+      if self.Serial_Port and self.Serial_Port.is_open:
+        self.Serial_Port.close()
+    except Exception as e:
+      logger.warning(f"Error closing port: {e}")
+
+    max_retries = 5
+    for attempt in range(max_retries):
+      try:
+        logger.info(f"Reconnecting to {self.device_name} (attempt {attempt + 1}/{max_retries})")
+        self.Serial_Port = serial.Serial(self.device_name, 9600, timeout=None)
+        logger.info(f"Successfully reconnected to {self.device_name}")
+        return True
+      except Exception as e:
+        logger.error(f"Reconnection attempt {attempt + 1} failed: {e}")
+        time.sleep(1)
+
+    logger.error(f"Failed to reconnect after {max_retries} attempts")
+    return False
 
   def send_message(self, message: Message) -> bool:
     """Send a message via UART."""
     if not self.Serial_Port or not self.Serial_Port.is_open:
-      logger.error("Serial port not open")
-      return False
+      logger.error("Serial port not open, attempting reconnect")
+      if not self.reconnect():
+        return False
 
     def _send() -> bool:
       self.Serial_Port.write(str(message).encode("ascii"))
@@ -80,14 +109,16 @@ class UART_CON:
         logger.error(f"Send message timed out after {timeout} seconds")
       else:
         logger.error(f"Serial communication error: {error}")
+        self.reconnect()
       return False
     return result
 
   def receive_message(self) -> Optional[Message]:
     """Receive a message via UART."""
     if not self.Serial_Port or not self.Serial_Port.is_open:
-      logger.error("Serial port not open")
-      return None
+      logger.error("Serial port not open, attempting reconnect")
+      if not self.reconnect():
+        return None
 
     def _receive() -> Message:
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
@@ -100,6 +131,7 @@ class UART_CON:
         logger.error(f"Receive message timed out after {timeout} seconds")
       else:
         logger.error(f"Serial communication error: {error}")
+        self.reconnect()
       return None
     return result
 
