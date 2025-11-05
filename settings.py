@@ -31,6 +31,7 @@ SLOPE_LOCK = threading.Lock()
 # Global state variables
 lastblackline = LINETRACE_CAMERA_LORES_WIDTH // 2  # Initialize to center
 slope: Optional[float] = None
+line_area: Optional[float] = None  # Area/size of detected black line
 
 # Contour storage
 red_contours: List[np.ndarray] = []
@@ -389,6 +390,10 @@ def Linetrace_Camera_Pre_callback(request):
 
         # Calculate center point of contour
         cx, cy = calculate_contour_center(best_contour)
+
+        # Calculate line area/size
+        global line_area
+        line_area = cv2.contourArea(best_contour)
 
         # Update global variables for line following
         with LASTBLACKLINE_LOCK:
