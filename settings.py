@@ -453,7 +453,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
                       last_center: int) -> Optional[np.ndarray]:
   """
   Find the best contour to follow from multiple candidates.
-  Prioritizes contours at the bottom of the image and close to the center.
+  Prioritizes contours close to the center first, then at the bottom of the image.
   Also considers line width and continuity to handle intersections.
  
   Returns the selected contour or None if no suitable contour found.
@@ -470,7 +470,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
 
   # Process valid contours
   candidates = []
-  bottom_contours = 0
+  image_center = camera_x / 2
 
   for i, contour in valid_contours:
     # Get bounding box
@@ -481,11 +481,17 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
 
     # Calculate line width at bottom
     width = abs(box[0][0] - box[1][0])
+    
+    # Calculate center of contour
+    center_x = (box[0][0] + box[1][0]) / 2
+    distance_from_center = abs(image_center - center_x)
+
+    # Penalize very wide lines (likely intersections)
+    if width > 20:
+      distance_from_center *= 2
 
     # Check if contour extends to bottom of image
     is_bottom = box[0][1] >= (camera_y * 0.95)
-    if is_bottom:
-      bottom_contours += 1
 
     candidates.append({
         'index': i,
@@ -495,32 +501,14 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
         'x2': int(box[1][0]),
         'y2': int(box[1][1]),
         'width': width,
-        'is_bottom': is_bottom
+        'is_bottom': is_bottom,
+        'distance_from_center': distance_from_center
     })
 
-  # Sort candidates by y-coordinate (prioritize contours at bottom)
-  candidates.sort(key=lambda x: x['y1'], reverse=True)
+  # Sort candidates by distance from center first (prioritize center), then by y-coordinate (bottom)
+  candidates.sort(key=lambda x: (x['distance_from_center'], -x['y1']))
 
-  # If multiple contours at bottom, choose based on width and distance from center
-  if bottom_contours > 1:
-    bottom_candidates = [c for c in candidates if c['is_bottom']]
-
-    for candidate in bottom_candidates:
-      center_x = (candidate['x1'] + candidate['x2']) / 2
-      image_center = camera_x / 2
-      distance_from_center = abs(image_center - center_x)
-
-      # Penalize very wide lines (likely intersections)
-      if candidate['width'] > 20:
-        distance_from_center *= 2
-
-      candidate['distance_from_center'] = distance_from_center
-
-    # Sort bottom contours by distance from image center (prioritize middle)
-    bottom_candidates.sort(key=lambda x: x['distance_from_center'])
-    return bottom_candidates[0]['contour']
-
-  # Return best contour (highest y-coordinate)
+  # Return best contour (closest to center, then highest y-coordinate)
   return candidates[0]['contour'] if candidates else None
 
 
