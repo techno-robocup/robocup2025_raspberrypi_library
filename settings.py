@@ -453,7 +453,7 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
                       last_center: int) -> Optional[np.ndarray]:
   """
   Find the best contour to follow from multiple candidates.
-  Prioritizes contours close to the center first, then at the bottom of the image.
+  Prioritizes larger lines first, then center, then bottom of the image.
   Also considers line width and continuity to handle intersections.
  
   Returns the selected contour or None if no suitable contour found.
@@ -492,6 +492,9 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
 
     # Check if contour extends to bottom of image
     is_bottom = box[0][1] >= (camera_y * 0.95)
+    
+    # Calculate contour area (larger = higher priority)
+    area = cv2.contourArea(contour)
 
     candidates.append({
         'index': i,
@@ -502,13 +505,14 @@ def find_best_contour(contours: List[np.ndarray], camera_x: int, camera_y: int,
         'y2': int(box[1][1]),
         'width': width,
         'is_bottom': is_bottom,
-        'distance_from_center': distance_from_center
+        'distance_from_center': distance_from_center,
+        'area': area
     })
 
-  # Sort candidates by distance from center first (prioritize center), then by y-coordinate (bottom)
-  candidates.sort(key=lambda x: (x['distance_from_center'], -x['y1']))
+  # Sort candidates by area (larger first), then center, then bottom
+  candidates.sort(key=lambda x: (-x['area'], x['distance_from_center'], -x['y1']))
 
-  # Return best contour (closest to center, then highest y-coordinate)
+  # Return best contour (largest area, then closest to center, then highest y-coordinate)
   return candidates[0]['contour'] if candidates else None
 
 
