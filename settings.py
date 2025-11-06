@@ -362,7 +362,7 @@ def Linetrace_Camera_Pre_callback(request):
         binary_image = cv2.morphologyEx(binary_image,
                                         cv2.MORPH_OPEN,
                                         kernel,
-                                        iterations=3)
+                                        iterations=6)
 
         # Detect marks in parallel (if threading is available)
         detect_red_marks(image)
