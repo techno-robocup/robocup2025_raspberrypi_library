@@ -63,9 +63,9 @@ def detect_green_marks(orig_image: np.ndarray,
   # Convert to HSV (avoid copying if possible)
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
-  # Define green color range (optimized for teal-green in varying lighting)
-  lower_green = np.array([35, 30, 10])
-  upper_green = np.array([95, 255, 255])
+  # Define green color range (very permissive for dark teal-green)
+  lower_green = np.array([30, 20, 5])
+  upper_green = np.array([100, 255, 255])
 
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
