@@ -52,6 +52,7 @@ MODEL = YOLO("best.pt")
 yolo_results = None
 
 last_yolo_time = 0
+last_linetrace_precallback_time = time.time()
 
 
 def detect_green_marks(orig_image: np.ndarray,
@@ -323,7 +324,8 @@ def _draw_silver_mark_debug(image: np.ndarray, x: int, y: int, w: int, h: int,
 
 def Linetrace_Camera_Pre_callback(request):
   """Optimized camera callback for line tracing."""
-  global lastblackline, slope
+  global lastblackline, slope, last_linetrace_precallback_time
+  last_linetrace_precallback_time = time.time()
   logger.debug("Line trace camera call-back called")
   current_time = time.time()
 
