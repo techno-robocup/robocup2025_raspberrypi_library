@@ -45,7 +45,7 @@ silver_marks: List[Tuple[int, int, int, int]] = []
 
 # Control flags
 stop_requested = False
-is_rescue_area = True
+is_rescue_area = False
 
 # Defining vars to be used by YOLO
 MODEL = YOLO("best.pt")
@@ -64,8 +64,8 @@ def detect_green_marks(orig_image: np.ndarray,
   hsv = cv2.cvtColor(orig_image, cv2.COLOR_RGB2HSV)
 
   # Define green color range (very permissive for dark teal-green)
-  lower_green = np.array([40, 20, 5])
-  upper_green = np.array([150, 255, 255])
+  lower_green = np.array([30, 140, 90])
+  upper_green = np.array([100, 255, 230])
 
   # Create mask for green color
   green_mask = cv2.inRange(hsv, lower_green, upper_green)
