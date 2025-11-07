@@ -73,7 +73,7 @@ def detect_green_marks(orig_image: np.ndarray,
   # Clean up noise with optimized kernel
   kernel = np.ones((3, 3), np.uint8)
   green_mask = cv2.morphologyEx(green_mask,
-                                cv2.MORPH_OPEN,
+                                cv2.MORPH_CLOSE,
                                 kernel,
                                 iterations=2)
 
