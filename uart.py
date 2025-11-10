@@ -124,7 +124,7 @@ class UART_CON:
       message_str = self.Serial_Port.read_until(b'\n').decode('ascii').strip()
       return Message(message_str)
 
-    timeout = 1
+    timeout = 0.2
     result, error = modules.settings.timeout_function(_receive, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
