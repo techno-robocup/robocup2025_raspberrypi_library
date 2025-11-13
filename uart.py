@@ -61,7 +61,7 @@ class UART_CON:
 
       serial_port_id = available_ports[0].device
       logger.debug(f"Using {available_ports[0].device}")
-      self.Serial_Port = serial.Serial(serial_port_id, 9600, timeout=None)
+      self.Serial_Port = serial.Serial(serial_port_id, 9600, timeout=0.2)
       self.device_name = serial_port_id
       break
 
@@ -102,7 +102,7 @@ class UART_CON:
       self.Serial_Port.write(str(message).encode("ascii"))
       return True
 
-    timeout = 1
+    timeout = 0.2
     result, error = modules.settings.timeout_function(_send, timeout=timeout)
     if error:
       if isinstance(error, TimeoutError):
