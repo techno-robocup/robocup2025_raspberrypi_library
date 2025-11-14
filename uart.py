@@ -81,7 +81,7 @@ class UART_CON:
     for attempt in range(max_retries):
       try:
         logger.info(f"Reconnecting to {self.device_name} (attempt {attempt + 1}/{max_retries})")
-        self.Serial_Port = serial.Serial(self.device_name, 9600, timeout=None)
+        self.Serial_Port = serial.Serial(self.device_name, 9600, timeout=0.2)
         logger.info(f"Successfully reconnected to {self.device_name}")
         return True
       except Exception as e:
