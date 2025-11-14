@@ -249,21 +249,21 @@ def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
                           h // 2:min(center_y + h // 2 +
                                      roi_height, LINETRACE_CAMERA_LORES_HEIGHT),
                           center_x - roi_width // 2:center_x + roi_width // 2]
-  if roi_b.size > 0 and np.sum(roi_b < BLACK_WHITE_THRESHOLD) / roi_b.size >= black_threshold:
+  if roi_b.size > 0 and np.sum(roi_b < BLACK_WHITE_THRESHOLD) / roi_b.size <= black_threshold:
     black_detections[0] = 1
 
   # Check top
   roi_t = blackline_image[max(center_y - h // 2 -
                               roi_height, 0):center_y - h // 2,
                           center_x - roi_width // 2:center_x + roi_width // 2]
-  if roi_t.size > 0 and np.sum(roi_t < BLACK_WHITE_THRESHOLD) / roi_t.size >= black_threshold:
+  if roi_t.size > 0 and np.sum(roi_t < BLACK_WHITE_THRESHOLD) / roi_t.size <= black_threshold:
     black_detections[1] = 1
 
   # Check left
   roi_l = blackline_image[center_y - roi_height // 2:center_y + roi_height // 2,
                           max(center_x - w // 2 - roi_width, 0):center_x -
                           w // 2]
-  if roi_l.size > 0 and np.sum(roi_l < BLACK_WHITE_THRESHOLD) / roi_l.size >= black_threshold:
+  if roi_l.size > 0 and np.sum(roi_l < BLACK_WHITE_THRESHOLD) / roi_l.size <= black_threshold:
     black_detections[2] = 1
 
   # Check right
@@ -271,7 +271,7 @@ def _check_black_lines_around_mark(blackline_image: np.ndarray, center_x: int,
                           center_x +
                           w // 2:min(center_x + w // 2 +
                                      roi_width, LINETRACE_CAMERA_LORES_WIDTH)]
-  if roi_r.size > 0 and np.sum(roi_r < BLACK_WHITE_THRESHOLD) / roi_r.size >= black_threshold:
+  if roi_r.size > 0 and np.sum(roi_r < BLACK_WHITE_THRESHOLD) / roi_r.size <= black_threshold:
     black_detections[3] = 1
 
   return black_detections
